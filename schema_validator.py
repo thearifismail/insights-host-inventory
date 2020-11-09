@@ -70,12 +70,12 @@ def run(config, logger, session, event_consumer, shutdown_handler):
 
     update_count = 0
     events = validate(query, event_consumer, 1000, shutdown_handler.shut_down)
-    for host_id, synchronize in events:
-        if synchronize:
-            logger.info("Synchronized host: %s", host_id)
+    for host_id, validated in events:
+        if vaditatvalidateded:
+            logger.info("Validated host: %s", host_id)
             update_count += 1
         else:
-            logger.info("Host %s already synchronized. Synchronize event not emitted.", host_id)
+            logger.info("Host %s already validated. validated event not emitted.", host_id)
     logger.info(f"Number of hosts synchronized: {update_count}")
 
 

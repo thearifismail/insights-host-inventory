@@ -16,7 +16,8 @@ from app.serialization import serialize_canonical_facts
 logger = logging.getLogger(__name__)
 
 
-EventType = Enum("EventType", ("created", "updated", "delete"))
+# EventType = Enum("EventType", ("created", "updated", "delete"))
+EventType = Enum("EventType", ("created", "updated", "delete", "validate"))
 
 
 def hostname():
@@ -110,11 +111,26 @@ def host_delete_event(event_type, host):
         },
     )
 
+def host_validate_event(event_type, host):
+    return (
+        HostValidateEvent,
+        {
+            "timestamp": datetime.now(timezone.utc),
+            "type": event_type.name,
+            "id": host.id,
+            **serialize_canonical_facts(host.canonical_facts),
+            "account": host.account,
+            "request_id": threadctx.request_id,
+            "metadata": {"request_id": threadctx.request_id},
+        },
+    )
+
 
 EVENT_TYPE_MAP = {
     EventType.created: host_create_update_event,
     EventType.updated: host_create_update_event,
     EventType.delete: host_delete_event,
+    EventType.delete: host_validate_event,
 }
 
 
