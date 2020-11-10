@@ -20,6 +20,12 @@ class EventConsumer:
 
 
     def msg_handler(self, event, key, headers, topic, *, wait=False):
+        # TODO: 
+        #   1.  what's the structure of message from Kafkaa
+        #   2.  connect to inventory schema repo and check out schema
+        #       https://github.com/RedHatInsights/insights-host-inventory has
+        #       only system-profile schema.  Which schema should we validate
+        #       against.
         print("inside msg_handler()")
         print("type(event):", type(event))
         print("event:", event)

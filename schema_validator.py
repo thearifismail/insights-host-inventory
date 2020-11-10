@@ -71,7 +71,7 @@ def run(config, logger, session, event_consumer, shutdown_handler):
     update_count = 0
     events = validate(query, event_consumer, 1000, shutdown_handler.shut_down)
     for host_id, validated in events:
-        if vaditatvalidateded:
+        if validated:
             logger.info("Validated host: %s", host_id)
             update_count += 1
         else:

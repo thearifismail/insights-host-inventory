@@ -15,7 +15,8 @@ __all__ = ("synchronize_hosts",)
 WARN_DAYS_AFTER = 7
 DELETE_DAYS_AFTER = 14
 
-
+# TODO: Host information should be coming from Kafka messages NOT the queries used here.
+#       For now query is being used to get host info to develop validation mechanism.
 def validate(select_query, event_consumer, chunk_size, interrupt=lambda: False):
     start = 0
     print("Total number: {}".format(select_query.count()))
@@ -25,9 +26,9 @@ def validate(select_query, event_consumer, chunk_size, interrupt=lambda: False):
             break
         for host in host_list:
             serialized_host = serialize_host(host, _staleness_timestamps(), EGRESS_HOST_FIELDS)
-            event           = build_event(EventType.updated, serialized_host)
+            event           = build_event(EventType.validate, serialized_host)
             insights_id     = host.canonical_facts.get("insights_id")
-            headers         = message_headers(EventType.updated, insights_id)
+            headers         = message_headers(EventType.validate, insights_id)
             event_consumer.msg_handler(event, str(serialized_host), headers, Topic.events, wait=True)
             synchronize_host_count.inc()
 
