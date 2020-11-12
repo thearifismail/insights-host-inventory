@@ -44,8 +44,6 @@ class EventConsumer:
         sp         = host_dict["host"]["system_profile"]
         repo       = "/Users/aarif/Documents/dev-ws/insights/inventory-schemas"
         path       = "schemas/system_profile/v1.yaml"
-        new_sr     = SchemaRepo(repo, "hackathon", path)
-        new_schema = new_sr.get_schema()
 
         schema_path = "/Users/aarif/Documents/dev-ws/insights/insights-host-inventory/swagger/system_profile.spec.yaml"
         schema_dict = yaml_safe_load(open(schema_path))
@@ -58,7 +56,7 @@ class EventConsumer:
             print ("Problem validating system-profile schema in new branch")
             print (f"some error: {ex}")
 
-        master_sr  =  SchemaRepo(repo, "master", path)
+        master_sr     =  SchemaRepo(repo, "master", path)
         master_schema = master_sr.get_schema()
         good_master   = {**master_schema, "$ref": "#/$defs/SystemProfile"}
 
