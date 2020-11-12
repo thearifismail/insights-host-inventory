@@ -80,6 +80,7 @@ class SystemProfileNormalizer:
     def __init__(self):
         specification = join(SPECIFICATION_DIR, SYSTEM_PROFILE_SPECIFICATION_FILE)
         with open(specification) as file:
+            # TODO get the spec file from repo based on the branch name.
             system_profile_spec = safe_load(file)
 
         self.schema = {**system_profile_spec, "$ref": "#/$defs/SystemProfile"}

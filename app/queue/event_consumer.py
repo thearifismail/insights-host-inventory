@@ -10,8 +10,13 @@ from app.instrumentation import message_produced
 from app.logging import get_logger
 
 from lib.schema_repository import SchemaRepository as SchemaRepo
+
 from jsonschema import validate as jsonschema_validate
 
+from app.serialization import deserialize_host_mq
+from yaml import safe_load as yaml_safe_load
+
+from app.exceptions import ValidationException
 
 logger = get_logger(__name__)
 
@@ -34,39 +39,36 @@ class EventConsumer:
         #   3.  # TODO: is libgit2 needed?  When tried "pip search libgit2", it returned "pygit2"
         #               and that's what I included in Pipfile.
         print("inside msg_handler()")
-        print("type(event):", type(event))
-        print("event:", event)
 
-        event_dict = json.loads(event)
-        # event_dict = [2, 3, 4, 5]
-        logger.info(f"{event}")
+        host_dict  = json.loads(event)
+        sp         = host_dict["host"]["system_profile"]
         repo       = "/Users/aarif/Documents/dev-ws/insights/inventory-schemas"
         path       = "schemas/system_profile/v1.yaml"
         new_sr     = SchemaRepo(repo, "hackathon", path)
         new_schema = new_sr.get_schema()
-        print("New schema:")
-        print(f"{new_schema}")
+
+        schema_path = "/Users/aarif/Documents/dev-ws/insights/insights-host-inventory/swagger/system_profile.spec.yaml"
+        schema_dict = yaml_safe_load(open(schema_path))
+        good_schema = {**schema_dict, "$ref": "#/$defs/SystemProfile"}
 
         try:
-            print("Checking using new branch...")
-            jsonschema_validate(event_dict, new_schema)
+            jsonschema_validate(sp, good_schema)
+            print("Successfully validated system-profile schema in new branch")
         except Exception as ex:
+            print ("Problem validating system-profile schema in new branch")
             print (f"some error: {ex}")
 
         master_sr  =  SchemaRepo(repo, "master", path)
         master_schema = master_sr.get_schema()
-        print("Master schema: ")
-        print(f"{master_schema}")
-        osv = jsonschema_validate(event_dict, master_schema)
+        good_master   = {**master_schema, "$ref": "#/$defs/SystemProfile"}
 
         try:
             print("Checking using master branch ...")
-            jsonschema_validate(event_dict, master_schema)
+            jsonschema_validate(sp, good_master)
+            print("Successfully validated system-profile schema in Master branch")
         except Exception as ex:
+            print ("Problem validating system-profile schema in Master branch")
             print (f"some error: {ex}")
-
-        print(f"New schema validation: {nsv}")
-        print(f"Old schema validation: {osv}")
 
 
     def close(self):

@@ -402,7 +402,7 @@ def create_system_profile():
         "bios_vendor": "Turd Ferguson",
         "bios_version": "1.0.0uhoh",
         "bios_release_date": "10/31/2013",
-        "cpu_flags": ["flag1", "flag2"],
+        "cpu_flags": ["flag1", "flag2", "flag31234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"],
         "os_release": "Red Hat EL 7.0.1",
         "os_kernel_version": "Linux 2.0.1",
         "arch": "x86-64",

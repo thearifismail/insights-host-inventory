@@ -2,7 +2,8 @@ from app.logging import get_logger
 from pygit2 import Repository as gitrepo
 
 from yaml import safe_load as yaml_safe_load
-# __all__ = ("get_repo")
+
+__all__ = ("get_repo", "get_workdir", "get_path", 'get_schema')
 
 logger = get_logger(__name__)
 
@@ -21,11 +22,12 @@ class SchemaRepository:
 
     def get_schema(self):
         if not self.branch.is_checked_out():
+            print(f"Checking out {self.branch.branch_name} branch")
             ref = self.repo.lookup_reference(self.branch.name)
             self.repo.checkout(ref)
         schema_path = self.get_workdir() + "schemas/system_profile/v1.yaml"
-        spec_dict = yaml_safe_load(open(schema_path))
-        return spec_dict
+        schema_dict = yaml_safe_load(open(schema_path))
+        return schema_dict
 
     def close(self):
         self._kafka_consumer.close()
