@@ -61,12 +61,12 @@ class EventConsumer:
         good_master   = {**master_schema, "$ref": "#/$defs/SystemProfile"}
 
         try:
-            print("Checking using master branch ...")
             jsonschema_validate(sp, good_master)
             print("Successfully validated system-profile schema in Master branch")
         except Exception as ex:
             print ("Problem validating system-profile schema in Master branch")
             print (f"some error: {ex}")
+            print ("That's it for the demo")
 
 
     def close(self):

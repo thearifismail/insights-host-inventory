@@ -12,7 +12,7 @@ class SchemaRepository:
         self.repo   = gitrepo(repo)
         self.branch = self.repo.branches[branch]
         self.path   = path
-        logger.info(f"Starting Schema() with repo: {repo}")
+        # logger.info(f"Starting Schema() with repo: {repo}")
 
     def get_workdir(self):
         return self.repo.workdir
@@ -21,8 +21,9 @@ class SchemaRepository:
         return self.repo.path 
 
     def get_schema(self):
+        print(f"Using branch {self.branch.branch_name}")
         if not self.branch.is_checked_out():
-            print(f"Checking out {self.branch.branch_name} branch")
+            print(f"Checking out branch {self.branch.branch_name}")
             ref = self.repo.lookup_reference(self.branch.name)
             self.repo.checkout(ref)
         schema_path = self.get_workdir() + "schemas/system_profile/v1.yaml"
