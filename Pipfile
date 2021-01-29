@@ -45,6 +45,7 @@ black = "==19.3b0"  # Pre-release, not semver
 pre-commit = "~=1.18.1"
 ttictoc = "~=0.4.1"
 sqlalchemy-utils = "==0.36.7"
+sh = "*"
 
 [requires]
 python_version = "3.6"

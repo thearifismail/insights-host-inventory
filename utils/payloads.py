@@ -372,12 +372,11 @@ def rpm_list():
 
 
 # Use these ids for creating hosts and generating api_keys.
-# owner_id = "34610538-5ab0-450b-8a61-05ec003c7392"
-# owner_id = "34610538-5ab0-450b-8a61-05ec003c7392"
-# owner_id = "34610538-5ab0-450b-8a61-05ec003c7392"
-# owner_id = "0112a28e-7749-46f2-b147-aeb930f07122"
-# owner_id = "9ec63400-b420-4ff7-81d4-4c7cb0e1d0c2"
-owner_id = "0dd9c80f-fd9a-43f3-9202-36a70c2593de"
+# These ids match with the hosts.js in xjoin-search
+# owner_id = "34610538-5ab0-450b-8a61-05ec003c7392" # 4 hosts
+# owner_id = "0112a28e-7749-46f2-b147-aeb930f07122" # 4 hosts
+# owner_id = "9ec63400-b420-4ff7-81d4-4c7cb0e1d0c2" # 8 hosts
+owner_id = "0dd9c80f-fd9a-43f3-9202-36a70c2593de"  # 2 hosts
 
 
 def create_system_profile():
