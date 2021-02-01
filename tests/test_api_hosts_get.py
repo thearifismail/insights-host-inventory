@@ -33,6 +33,7 @@ from tests.helpers.db_utils import update_host_in_db
 from tests.helpers.test_utils import generate_uuid
 from tests.helpers.test_utils import minimal_host
 from tests.helpers.test_utils import now
+from tests.helpers.test_utils import SYSTEM_IDENTITY
 
 
 def test_query_all(mq_create_three_specific_hosts, api_get, subtests):
@@ -585,7 +586,7 @@ def test_get_host_with_unescaped_special_characters(tag_query, mq_create_or_upda
     ]
 
     host = minimal_host(tags=tags)
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     url = build_hosts_url(query=f"?tags={quote(tag_query)}")
     response_status, response_data = api_get(url)
@@ -605,7 +606,7 @@ def test_get_host_with_escaped_special_characters(namespace, key, value, mq_crea
     ]
 
     host = minimal_host(tags=tags)
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     tags_query = quote(f"{quote_everything(namespace)}/{quote_everything(key)}={quote_everything(value)}")
     url = build_hosts_url(query=f"?tags={tags_query}")
@@ -851,11 +852,13 @@ def test_only_order_how(mq_create_three_specific_hosts, api_get, subtests):
             assert response_status == 400
 
 
-def test_get_hosts_only_insights(mq_create_three_specific_hosts, mq_create_or_update_host, api_get):
+def test_get_hosts_only_insights(
+    mq_create_three_specific_hosts, mq_create_or_update_host, api_get, system_identity_mock
+):
     created_hosts_with_insights_id = mq_create_three_specific_hosts
 
     host_without_insights_id = minimal_host(subscription_manager_id=generate_uuid())
-    created_host_without_insights_id = mq_create_or_update_host(host_without_insights_id)
+    created_host_without_insights_id = mq_create_or_update_host(host_without_insights_id, SYSTEM_IDENTITY)
 
     url = build_hosts_url(query="?registered_with=insights")
     response_status, response_data = api_get(url)

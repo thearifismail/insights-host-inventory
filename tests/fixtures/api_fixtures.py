@@ -2,6 +2,7 @@ import pytest
 
 from tests.helpers.api_utils import do_request
 from tests.helpers.api_utils import HOST_URL
+from tests.helpers.api_utils import MockSystemIdentity
 from tests.helpers.api_utils import MockUserIdentity
 from tests.helpers.api_utils import USER_IDENTITY
 
@@ -137,4 +138,11 @@ def enable_rbac(inventory_config):
 def user_identity_mock(flask_app):
     flask_app.user_identity = MockUserIdentity()
     yield flask_app.user_identity
+    # flask_app.user_identity = None
+
+
+@pytest.fixture(scope="function")
+def system_identity_mock(flask_app):
+    flask_app.system_identity = MockSystemIdentity()
+    yield flask_app.system_identity
     # flask_app.user_identity = None

@@ -20,6 +20,7 @@ from tests.helpers.mq_utils import assert_delete_event_is_valid
 from tests.helpers.test_utils import get_staleness_timestamps
 from tests.helpers.test_utils import minimal_host
 from tests.helpers.test_utils import now
+from tests.helpers.test_utils import SYSTEM_IDENTITY
 
 
 def test_with_stale_timestamp(mq_create_or_update_host, api_get):
@@ -28,10 +29,10 @@ def test_with_stale_timestamp(mq_create_or_update_host, api_get):
 
     host = minimal_host(fqdn="matching fqdn", stale_timestamp=stale_timestamp.isoformat(), reporter=reporter)
 
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
     assert_system_culling_data(created_host.data(), stale_timestamp, reporter)
 
-    updated_host = mq_create_or_update_host(host)
+    updated_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
     assert_system_culling_data(updated_host.data(), stale_timestamp, reporter)
 
     response_status, response_data = api_get(HOST_URL)
@@ -269,7 +270,7 @@ def test_stale_warning_timestamp(
 
     stale_timestamp = now() + timedelta(hours=1)
     host = minimal_host(stale_timestamp=stale_timestamp.isoformat())
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     url = build_hosts_url(created_host.id)
     response_status, response_data = api_get(url)
@@ -292,7 +293,7 @@ def test_culled_timestamp(
 
     stale_timestamp = now() + timedelta(hours=1)
     host = minimal_host(stale_timestamp=stale_timestamp.isoformat())
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     url = build_hosts_url(created_host.id)
     response_status, response_data = api_get(url)

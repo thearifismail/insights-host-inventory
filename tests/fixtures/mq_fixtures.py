@@ -14,14 +14,15 @@ from tests.helpers.test_utils import generate_uuid
 from tests.helpers.test_utils import get_staleness_timestamps
 from tests.helpers.test_utils import minimal_host
 from tests.helpers.test_utils import now
+from tests.helpers.test_utils import SYSTEM_IDENTITY
 
 
 @pytest.fixture(scope="function")
 def mq_create_or_update_host(flask_app, event_producer_mock):
     def _mq_create_or_update_host(
-        host_data, platform_metadata=None, return_all_data=False, event_producer=event_producer_mock
+        host_data, identity, platform_metadata=None, return_all_data=False, event_producer=event_producer_mock
     ):
-        message = wrap_message(host_data.data(), platform_metadata=platform_metadata)
+        message = wrap_message(host_data.data(), identity, platform_metadata=platform_metadata)
         handle_message(json.dumps(message), event_producer)
         event = json.loads(event_producer.event)
 
@@ -42,7 +43,8 @@ def mq_create_three_specific_hosts(mq_create_or_update_host):
         host = minimal_host(
             insights_id=generate_uuid(), display_name=f"host{i}", fqdn=fqdn, facts=FACTS, tags=TAGS[i - 1]
         )
-        created_host = mq_create_or_update_host(host)
+
+        created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
         created_hosts.append(created_host)
 
     return created_hosts
@@ -52,7 +54,7 @@ def mq_create_three_specific_hosts(mq_create_or_update_host):
 def mq_create_four_specific_hosts(mq_create_three_specific_hosts, mq_create_or_update_host):
     created_hosts = mq_create_three_specific_hosts
     host = minimal_host(insights_id=generate_uuid(), display_name=created_hosts[0].display_name)
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
     created_hosts.append(created_host)
 
     return created_hosts
@@ -66,7 +68,7 @@ def mq_create_hosts_in_all_states(mq_create_or_update_host):
         host = minimal_host(
             insights_id=generate_uuid(), stale_timestamp=timestamp.isoformat(), reporter="some reporter", facts=FACTS
         )
-        created_hosts[state] = mq_create_or_update_host(host)
+        created_hosts[state] = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     return created_hosts
 

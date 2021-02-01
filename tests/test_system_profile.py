@@ -24,6 +24,7 @@ from tests.helpers.mq_utils import wrap_message
 from tests.helpers.system_profile_utils import system_profile_specification
 from tests.helpers.test_utils import generate_uuid
 from tests.helpers.test_utils import minimal_host
+from tests.helpers.test_utils import SYSTEM_IDENTITY
 from tests.helpers.test_utils import valid_system_profile
 
 
@@ -31,7 +32,7 @@ from tests.helpers.test_utils import valid_system_profile
 def test_system_profile_includes_owner_id(mq_create_or_update_host, api_get, subtests):
     system_profile = valid_system_profile()
     host = minimal_host(system_profile=system_profile)
-    created_host = mq_create_or_update_host(host)
+    created_host = mq_create_or_update_host(host, SYSTEM_IDENTITY)
 
     url = build_system_profile_url(host_list_or_id=created_host.id)
 
@@ -215,7 +216,7 @@ def test_validate_sp_for_branch(mocker):
     config = Config(RuntimeEnvironment.SERVICE)
     tp = TopicPartition(config.host_ingress_topic, 0)
     fake_consumer.poll.return_value = {
-        tp: [SimpleNamespace(value=json.dumps(wrap_message(minimal_host().data()))) for _ in range(5)]
+        tp: [SimpleNamespace(value=json.dumps(wrap_message(minimal_host().data(), SYSTEM_IDENTITY))) for _ in range(5)]
     }
     fake_consumer.offsets_for_times.return_value = {tp: SimpleNamespace(offset=0)}
 
@@ -250,7 +251,7 @@ def test_validate_sp_for_missing_branch_or_repo(api_post, mocker):
     config = Config(RuntimeEnvironment.SERVICE)
     tp = TopicPartition(config.host_ingress_topic, 0)
     fake_consumer.poll.return_value = {
-        tp: [SimpleNamespace(value=json.dumps(wrap_message(minimal_host().data()))) for _ in range(5)]
+        tp: [SimpleNamespace(value=json.dumps(wrap_message(minimal_host().data(), SYSTEM_IDENTITY))) for _ in range(5)]
     }
     fake_consumer.offsets_for_times.return_value = {tp: SimpleNamespace(offset=0)}
 

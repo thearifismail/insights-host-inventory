@@ -6,6 +6,15 @@ from datetime import timedelta
 from datetime import timezone
 
 
+SYSTEM_IDENTITY = {
+    "account_number": "test",
+    "auth_type": "cert-auth",
+    "internal": {"auth_time": 6300, "org_id": "3340851"},
+    "system": {"cert_type": "system", "cn": "1b36b20f-7fa0-4454-a6d2-008294e06378"},
+    "type": "System",
+}
+
+
 def rpm_list():
     return [
         "rpm-python-4.11.3-32.el7.x86_64",
@@ -373,7 +382,8 @@ def rpm_list():
 
 def create_system_profile():
     return {
-        "owner_id": "1b36b20f-7fa0-4454-a6d2-008294e06378",
+        # "owner_id": "1b36b20f-7fa0-4454-a6d2-008294e06378",
+        "owner_id": SYSTEM_IDENTITY["system"]["cn"],
         "number_of_cpus": 1,
         "number_of_sockets": 2,
         "cores_per_socket": 4,
@@ -545,6 +555,7 @@ def build_mq_payload(payload_builder=build_host_chunk):
     message = {
         "operation": "add_host",
         "platform_metadata": {"request_id": random_uuid(), "archive_url": "http://s3.aws.com/redhat/insights/1234567"},
+        "identity": SYSTEM_IDENTITY,
         "data": build_host_payload(payload_builder),
     }
     return json.dumps(message).encode("utf-8")

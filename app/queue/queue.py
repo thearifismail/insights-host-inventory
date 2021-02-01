@@ -86,6 +86,7 @@ def parse_operation_message(message):
         raise
 
     try:
+        # identity = parsed_message['identity']
         parsed_operation = OperationSchema(strict=True).load(parsed_message).data
     except ValidationError as e:
         logger.error(
@@ -98,11 +99,14 @@ def parse_operation_message(message):
         metrics.ingress_message_parsing_failure.labels("error").inc()
         raise
 
+    # logger.debug("parsed_message: %s", identity)
     logger.debug("parsed_message: %s", parsed_operation)
+    # return parsed_operation, identity
     return parsed_operation
 
 
 def add_host(host_data, identity):
+
     payload_tracker = get_payload_tracker(request_id=threadctx.request_id)
 
     with PayloadTrackerProcessingContext(
@@ -133,14 +137,21 @@ def add_host(host_data, identity):
 
 @metrics.ingress_message_handler_time.time()
 def handle_message(message, event_producer):
+    # validated_operation_msg, id_dict = parse_operation_message(message)
     validated_operation_msg = parse_operation_message(message)
     platform_metadata = validated_operation_msg.get("platform_metadata") or {}
 
+    msg_dict = json.loads(message)
+    id_dict = msg_dict["identity"]
+
+    if type(id_dict) == str:
+        id_dict = id_dict.replace("'", '"')
+        id_dict = json.loads(id_dict)
     # create a dummy identity for working around the identity requirement for CRUD operations
-    identity = Identity(USER_IDENTITY)
+    identity = Identity(id_dict)
 
     # set account_number in dummy idenity to the actual account_number received in the payload
-    identity.account_number = validated_operation_msg["data"]["account"]
+    # identity.account_number = validated_operation_msg["data"]["account"]
 
     request_id = platform_metadata.get("request_id", "-1")
     initialize_thread_local_storage(request_id)
