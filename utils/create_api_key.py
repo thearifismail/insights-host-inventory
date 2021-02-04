@@ -3,12 +3,41 @@ import json
 import sys
 
 """
-  Script to generate base64-encoded json and avoid forgetting or not
-  thinking about new-line character, which is add by default when using
-  "echo "asdfadsaf | base64".  The output to use is the generated in
-  b'<generted_string>'.
+  This script is used to generate a base64-encoded apiKey using the same json input for a
+  desired identity.  There have been occasions when a considerable amount of time was spent
+  to determine why the hosts in DB were not accessible using REST API.  The reason turned
+  out was using a different apikey for accessing hosts than the one used for creating hosts.
+
+  To generate an apiKey, run:
+  "python create_api_key.py basic"
+
+  To see what `auth_type` options are available, run:
+  "python create_api_key"
 """
 VALID_AUTH_TYPES = ["basic", "cert", "classic"]
+
+SYSTEM_IDENTITY = {
+    "account_number": "test",
+    "type": "System",
+    "auth_type": "cert-auth",
+    "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
+    "internal": {"org_id": "3340851", "auth_time": 6300},
+}
+
+USER_IDENTITY = {
+    "account_number": "test",
+    "type": "User",
+    "auth_type": "basic-auth",
+    "user": {"email": "tuser@redhat.com", "first_name": "test"},
+}
+
+INSIGHTS_CLASSIC_IDENTITY = {
+    "account_number": "test",
+    "auth_type": "classic-proxy",
+    "internal": {"auth_time": 6300, "org_id": "3340851"},
+    "system": {},
+    "type": "System",
+}
 
 
 def main(argv):
@@ -24,33 +53,11 @@ def main(argv):
         exit(2)
 
     if auth_type == "basic":
-        data = {
-            "identity": {
-                "account_number": "user_id_number",
-                "type": "User",
-                "auth_type": "basic-auth",
-                "user": {"email": "tuser@redhat.com", "first_name": "test"},
-            }
-        }
+        data = USER_IDENTITY
     elif auth_type == "cert":
-        data = {
-            "identity": {
-                "account_number": "sys_id_number",
-                "type": "System",
-                "auth_type": "cert-auth",
-                "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
-                "internal": {"org_id": "3340851", "auth_time": 6300},
-            }
-        }
-
+        data = SYSTEM_IDENTITY
     else:  # auth type is classic
-        data = {
-            "account_number": "test",
-            "auth_type": "classic-proxy",
-            "internal": {"auth_time": 6300, "org_id": "3340851"},
-            "system": {},
-            "type": "System",
-        }
+        data = INSIGHTS_CLASSIC_IDENTITY
 
     # turns json dict into s string
     data_dict = json.dumps(data)
@@ -58,17 +65,13 @@ def main(argv):
     # base64.b64encode() needs bytes-like object NOT a string.
     apiKey = base64.b64encode(data_dict.encode("utf-8"))
 
-    print("")
-    print(f"For auth_type: {auth_type}: the encoded apiKey is:")
-    print("")
-    print(f"{apiKey}")
-    print("")
+    print(f"\nFor auth_type: {auth_type}: the encoded apiKey is:\n")
+    print(f"{apiKey}\n")
     print(json.dumps(data, indent=2))
-    print("")
 
 
 # end of the main
 
 if __name__ == "__main__":
     main(sys.argv)
-    print("Done!!!\n")
+    print("\nDone!!!\n")
