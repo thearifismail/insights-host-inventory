@@ -82,6 +82,30 @@ def test_validate_valid_user_identity(flask_client):
     assert 200 == response.status_code  # OK
 
 
+def test_validate_non_admin_user_identity(flask_client):
+    """
+    Identity header is valid and user is provided, but is not an Admin
+    """
+    identity = valid_identity("User")
+    identity.user["username"] = "regularjoe@redhat.com"
+    payload = create_identity_payload(identity)
+    response = flask_client.post(
+        f"{SYSTEM_PROFILE_URL}/validate_schema?repo_branch=master&days=1", headers={"x-rh-identity": payload}
+    )
+    assert 403 == response.status_code  # User is not an HBI admin
+
+
+def test_validate_non_user_admin_endpoint(flask_client):
+    """
+    Identity header is valid and user is provided, but is not an Admin
+    """
+    payload = valid_payload("System")
+    response = flask_client.post(
+        f"{SYSTEM_PROFILE_URL}/validate_schema?repo_branch=master&days=1", headers={"x-rh-identity": payload}
+    )
+    assert 403 == response.status_code  # Endpoint not available to Systems
+
+
 def test_validate_valid_system_identity(flask_client):
     """
     Identity header is valid – non-empty in this case
