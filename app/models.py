@@ -26,6 +26,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from yaml import safe_load
 
 from app.exceptions import InventoryException
+from app.exceptions import ValidationException
 from app.logging import get_logger
 from app.validators import check_empty_keys
 from app.validators import verify_satellite_id
@@ -44,6 +45,14 @@ SPECIFICATION_DIR = "./swagger/"
 SYSTEM_PROFILE_SPECIFICATION_FILE = "system_profile.spec.yaml"
 
 
+class ProviderType(str, Enum):
+    ALIBABA = "alibaba"
+    AWS = "aws"
+    AZURE = "azure"
+    GCP = "gcp"
+    IBM = "ibm"
+
+
 def _set_display_name_on_save(context):
     """
     This method sets the display_name if it has not been set previously.
@@ -53,6 +62,18 @@ def _set_display_name_on_save(context):
     params = context.get_current_parameters()
     if not params["display_name"]:
         return params["canonical_facts"].get("fqdn") or params["id"]
+
+
+#  verifies provider_type and if the required provider_id is provided.
+def _check_provider(provider_type, canonical_facts):
+    if provider_type.lower() not in ProviderType.__members__.values():
+        raise ValidationException(
+            f'Unknown Provider Type: {provider_type}.  Valid provider types are:\
+             "alibaba", "aws", "azure", "gcp", or "ibm"'
+        )
+    if not canonical_facts.get("provider_id"):
+        raise ValidationException("Missing Provider ID")
+    return True
 
 
 def _time_now():
@@ -132,6 +153,7 @@ class LimitedHost(db.Model):
         Index("idxgincanonicalfacts", "canonical_facts"),
         Index("idxaccount", "account"),
         Index("hosts_subscription_manager_id_index", text("(canonical_facts ->> 'subscription_manager_id')")),
+        Index("idxprovidertypeid", text("(canonical_facts ->> 'provider_type_id')")),
     )
 
     def __init__(
@@ -420,6 +442,7 @@ class CanonicalFactsSchema(MarshmallowSchema):
         fields.Str(validate=marshmallow_validate.Length(min=1, max=59)), validate=marshmallow_validate.Length(min=1)
     )
     external_id = fields.Str(validate=marshmallow_validate.Length(min=1, max=500))
+    provider_type_id = fields.Str(validate=marshmallow_validate.Length(min=1, max=100))
 
 
 class LimitedHostSchema(CanonicalFactsSchema):
