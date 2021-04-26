@@ -102,6 +102,22 @@ class HostWrapper:
         self.__data["provider_id"] = cf
 
     @property
+    def provider_fact(self):
+        return self.__data.get("provider_fact")
+
+    @provider_fact.setter
+    def provider_fact(self, cf):
+        self.__data["provider_fact"] = cf
+
+    @property
+    def provider_id(self):
+        return self.__data.get("provider_id")
+
+    @provider_id.setter
+    def provider_id(self, cf):
+        self.__data["provider_id"] = cf
+
+    @property
     def provider_type(self):
         return self.__data.get("provider_type")
 

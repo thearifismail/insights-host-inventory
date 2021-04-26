@@ -1189,14 +1189,15 @@ class SerializationSerializeHostCompoundTestCase(SerializationSerializeHostBaseT
             "fqdn": "some fqdn",
             "mac_addresses": ["c2:00:d0:c8:61:01"],
             "external_id": "i-05d2313e6b9a42b16",
-            "provider_id": "i-05d2313e6b9a42b16",
+            # "provider_id": "i-05d2313e6b9a42b16",
+            "provider_fact": "aws_i-05d2313e6b9a42b16",
         }
         unchanged_data = {
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some acct",
             "reporter": "insights",
-            "provider_type": "aws",
+            # "provider_type": "aws",
         }
         host_init_data = {
             "canonical_facts": canonical_facts,
@@ -1248,7 +1249,8 @@ class SerializationSerializeHostCompoundTestCase(SerializationSerializeHostBaseT
         unchanged_data = {"display_name": None, "account": None, "reporter": "yupana"}
         host_init_data = {
             "stale_timestamp": datetime.now(timezone.utc),
-            "canonical_facts": {"fqdn": "some fqdn", "provider_id": "i-05d2313e6b9a42b16"},
+            # "canonical_facts": {"fqdn": "some fqdn", "provider_id": "i-05d2313e6b9a42b16"},
+            "canonical_facts": {"fqdn": "some fqdn", "provider_fact": "aws_i-05d2313e6b9a42b16"},
             **unchanged_data,
             "facts": {},
         }
@@ -1271,7 +1273,7 @@ class SerializationSerializeHostCompoundTestCase(SerializationSerializeHostBaseT
             "mac_addresses": None,
             "external_id": None,
             "ansible_host": None,
-            "provider_type": None,
+            # "provider_type": None,
             **unchanged_data,
             "facts": [],
             "tags": [],
@@ -1372,7 +1374,7 @@ class SerializationSerializeHostMockedTestCase(SerializationSerializeHostBaseTes
             "stale_timestamp": self._timestamp_to_str(staleness_offset.stale_timestamp.return_value),
             "stale_warning_timestamp": self._timestamp_to_str(staleness_offset.stale_warning_timestamp.return_value),
             "culled_timestamp": self._timestamp_to_str(staleness_offset.culled_timestamp.return_value),
-            "provider_type": None,
+            # "provider_type": None,
         }
         self.assertEqual(expected, actual)
 
@@ -1488,7 +1490,8 @@ class SerializationSerializeCanonicalFactsTestCase(TestCase):
             "fqdn": "some fqdn",
             "mac_addresses": ("c2:00:d0:c8:61:01",),
             "external_id": "i-05d2313e6b9a42b16",
-            "provider_id": "i-05d2313e6b9a42b16",
+            # "provider_id": "i-05d2313e6b9a42b16",
+            "provider_fact": "aws_i-05d2313e6b9a42b16",
         }
         self.assertEqual(canonical_facts, serialize_canonical_facts(canonical_facts))
 
@@ -1503,7 +1506,8 @@ class SerializationSerializeCanonicalFactsTestCase(TestCase):
             "fqdn",
             "mac_addresses",
             "external_id",
-            "provider_id",
+            # "provider_id",
+            "provider_fact",
         )
         self.assertEqual({field: None for field in canonical_fact_fields}, serialize_canonical_facts({}))
 

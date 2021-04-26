@@ -26,7 +26,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from yaml import safe_load
 
 from app.exceptions import InventoryException
-from app.exceptions import ValidationException
 from app.logging import get_logger
 from app.validators import check_empty_keys
 from app.validators import verify_satellite_id
@@ -45,14 +44,6 @@ SPECIFICATION_DIR = "./swagger/"
 SYSTEM_PROFILE_SPECIFICATION_FILE = "system_profile.spec.yaml"
 
 
-class ProviderType(str, Enum):
-    ALIBABA = "alibaba"
-    AWS = "aws"
-    AZURE = "azure"
-    GCP = "gcp"
-    IBM = "ibm"
-
-
 def _set_display_name_on_save(context):
     """
     This method sets the display_name if it has not been set previously.
@@ -62,18 +53,6 @@ def _set_display_name_on_save(context):
     params = context.get_current_parameters()
     if not params["display_name"]:
         return params["canonical_facts"].get("fqdn") or params["id"]
-
-
-#  verifies provider_type and if the required provider_id is provided.
-def _check_provider(provider_type, canonical_facts):
-    if provider_type.lower() not in ProviderType.__members__.values():
-        raise ValidationException(
-            f'Unknown Provider Type: {provider_type}.  Valid provider types are:\
-             "alibaba", "aws", "azure", "gcp", or "ibm"'
-        )
-    if not canonical_facts.get("provider_id"):
-        raise ValidationException("Missing Provider ID")
-    return True
 
 
 def _time_now():
@@ -180,13 +159,15 @@ class LimitedHost(db.Model):
         self.facts = facts or {}
         self.tags = tags or {}
         self.system_profile_facts = system_profile_facts or {}
-        self._update_provider_type(provider_type)
+        # self._update_provider_type(provider_type)
+        self.provider_type = provider_type
 
     def _update_ansible_host(self, ansible_host):
         if ansible_host is not None:
             # Allow a user to clear out the ansible host with an empty string
             self.ansible_host = ansible_host
 
+    # TODO: delete is because a provider_type if present can not be blank.
     def _update_provider_type(self, provider_type):
         if provider_type is not None:
             # Allow a user to clear out the provider_type with an empty string
@@ -202,13 +183,14 @@ class LimitedHost(db.Model):
     tags = db.Column(JSONB)
     canonical_facts = db.Column(JSONB)
     system_profile_facts = db.Column(JSONB)
-    provider_type = db.Column(db.String(50))
+    # provider_type = db.Column(db.String(50))
 
 
 class Host(LimitedHost):
     stale_timestamp = db.Column(db.DateTime(timezone=True))
     reporter = db.Column(db.String(255))
     per_reporter_staleness = db.Column(JSONB)
+    provider_type = db.Column(db.String(50))
 
     def __init__(
         self,
@@ -233,8 +215,8 @@ class Host(LimitedHost):
                 title="Invalid request", detail="Both stale_timestamp and reporter fields must be present."
             )
 
-        if provider_type:
-            _check_provider(provider_type, canonical_facts)
+        # if provider_type:
+        #     _check_provider(provider_type, canonical_facts)
 
         super().__init__(
             canonical_facts, display_name, ansible_host, account, facts, tags, system_profile_facts, provider_type
@@ -242,6 +224,7 @@ class Host(LimitedHost):
         self.stale_timestamp = stale_timestamp
         self.reporter = reporter
         self._update_per_reporter_staleness(stale_timestamp, reporter)
+        self.provider_type = provider_type
 
     def save(self):
         self._cleanup_tags()
@@ -460,7 +443,7 @@ class CanonicalFactsSchema(MarshmallowSchema):
         fields.Str(validate=marshmallow_validate.Length(min=1, max=59)), validate=marshmallow_validate.Length(min=1)
     )
     external_id = fields.Str(validate=marshmallow_validate.Length(min=1, max=500))
-    provider_id = fields.Str(validate=marshmallow_validate.Length(min=1, max=50))
+    provider_fact = fields.Str(validate=marshmallow_validate.Length(min=1, max=100))
 
 
 class LimitedHostSchema(CanonicalFactsSchema):
