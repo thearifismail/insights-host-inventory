@@ -5,10 +5,14 @@ import payloads
 from kafka import KafkaProducer
 from ttictoc import TicToc
 
-
+# When using Clowder, set the KAFKA_HOST_INGRESS_TOPIC to topicName.evn.ns
+# e.g. "KAFKA_HOST_INGRESS_TOPIC", "platform.inventory.host-ingress.env-$NS.$NS"
+# where NS=<NAMESPACE>
+# HOST_INGRESS_TOPIC = os.environ.get("KAFKA_HOST_INGRESS_TOPIC", \
+# "platform.inventory.host-ingress.env-ephemeral-07.ephemeral-07")
 HOST_INGRESS_TOPIC = os.environ.get("KAFKA_HOST_INGRESS_TOPIC", "platform.inventory.host-ingress")
-BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092")
-NUM_HOSTS = int(os.environ.get("NUM_HOSTS", 1))
+BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+NUM_HOSTS = int(os.environ.get("NUM_HOSTS", 5))
 
 
 def main():

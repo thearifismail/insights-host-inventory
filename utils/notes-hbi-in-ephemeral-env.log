@@ -1,0 +1,273 @@
+This file contains notes for running HBI in Ephemeral cluster.
+Hosts have been created by exposing Kafka
+
+============================================================
+$ oc project
+Using project "ephemeral-07" on server "https://api.c-rh-c-eph.8p0c.p1.openshiftapps.com:6443".
+
+============================================================
+
+bonfire deploy host-inventory -n ephemeral-07
+
+============================================================
+
+oc exec ingress-service-859956998b-28w5m -- cat /cdapp/cdappconfig.json | jq
+
+=================================================
+Deployments.  edited to set minReplicas to 1 each
+-------------------------------------------------
+ $ oc get deployments
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+connect-connect                    1/1     1            1           6h51m
+env-ephemeral-07-featureflags      1/1     1            1           6h56m
+env-ephemeral-07-minio             1/1     1            1           6h56m
+featureflags-db                    1/1     1            1           6h56m
+host-inventory-db                  1/1     1            1           97m
+host-inventory-inventory-mq-p1     1/1     1            1           97m
+host-inventory-inventory-mq-pmin   1/1     1            1           97m
+host-inventory-inventory-mq-sp     1/1     1            1           97m
+host-inventory-service             1/1     1            1           97m
+kafka-entity-operator              1/1     1            1           6h51m
+rbac-db                            1/1     1            1           97m
+rbac-redis                         1/1     1            1           97m
+rbac-scheduler-service             0/0     0            0           97m
+rbac-service                       2/2     2            2           97m
+rbac-worker-service                0/0     0            0           97m
+aarif@MacBook-Pro~/Documents/dev-ws/insights/insights-host-inventory[create_host_ephem*] $
+
+===========
+services
+-----------
+$ oc get svc
+NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+connect-connect-api                ClusterIP   172.30.144.168   <none>        8083/TCP                     6h48m
+env-ephemeral-07-featureflags      ClusterIP   172.30.64.154    <none>        4242/TCP                     6h53m
+env-ephemeral-07-minio             ClusterIP   172.30.150.236   <none>        9000/TCP                     6h53m
+featureflags-db                    ClusterIP   172.30.108.248   <none>        5432/TCP                     6h53m
+host-inventory-db                  ClusterIP   172.30.49.173    <none>        5432/TCP                     94m
+host-inventory-inventory-mq-p1     ClusterIP   172.30.50.191    <none>        9000/TCP                     94m
+host-inventory-inventory-mq-pmin   ClusterIP   172.30.192.69    <none>        9000/TCP                     94m
+host-inventory-inventory-mq-sp     ClusterIP   172.30.244.70    <none>        9000/TCP                     94m
+host-inventory-service             ClusterIP   172.30.235.88    <none>        8000/TCP,9000/TCP            94m
+kafka-kafka-bootstrap              ClusterIP   172.30.211.115   <none>        9091/TCP,9092/TCP            6h49m
+kafka-kafka-brokers                ClusterIP   None             <none>        9091/TCP,9092/TCP            6h49m
+kafka-zookeeper-client             ClusterIP   172.30.199.64    <none>        2181/TCP                     6h49m
+kafka-zookeeper-nodes              ClusterIP   None             <none>        2181/TCP,2888/TCP,3888/TCP   6h49m
+rbac                               ClusterIP   172.30.42.21     <none>        8080/TCP                     94m
+rbac-db                            ClusterIP   172.30.172.167   <none>        5432/TCP                     94m
+rbac-redis                         ClusterIP   172.30.93.39     <none>        6379/TCP                     94m
+rbac-scheduler-service             ClusterIP   172.30.110.143   <none>        9000/TCP                     94m
+rbac-service                       ClusterIP   172.30.202.241   <none>        8000/TCP,9000/TCP            94m
+rbac-worker-service                ClusterIP   172.30.52.137    <none>        9000/TCP                     94m
+$
+
+==========
+pods
+----------
+ $ oc get po
+NAME                                                READY   STATUS    RESTARTS   AGE
+connect-connect-574f65b695-96v5p                    1/1     Running   0          6h52m
+env-ephemeral-07-featureflags-9cb68bc8f-c7xdw       1/1     Running   9          6h58m
+env-ephemeral-07-minio-598b897cff-mrzkb             1/1     Running   0          6h52m
+featureflags-db-7f76bcf64-2nqgd                     1/1     Running   1          57m
+host-inventory-db-6bc577f4d7-bxn77                  1/1     Running   1          98m
+host-inventory-inventory-mq-p1-67d8ffb89f-s48tz     1/1     Running   0          98m
+host-inventory-inventory-mq-pmin-6d7c88ff6b-hpszc   1/1     Running   0          98m
+host-inventory-inventory-mq-sp-849bb9dcbc-tplcb     1/1     Running   0          98m
+host-inventory-service-5976f446b7-xqs5n             1/1     Running   0          98m
+kafka-entity-operator-6c5bcb9cf9-l96m5              3/3     Running   10         57m
+kafka-kafka-0                                       1/1     Running   3          47m
+kafka-zookeeper-0                                   1/1     Running   0          48m
+rbac-db-7544fc8c85-mc2qj                            1/1     Running   1          98m
+rbac-redis-5cc8b6b587-9wsp8                         1/1     Running   0          98m
+rbac-service-77fcf84c6b-27zd7                       1/1     Running   0          98m
+rbac-service-77fcf84c6b-tndlh                       1/1     Running   0          98m
+aarif@MacBook-Pro~/Documents/dev-ws/insights/insights-host-inventory[create_host_ephem*] $
+
+=====
+Topic
+-----
+HOST_INGRESS_TOPIC = os.environ.get("KAFKA_HOST_INGRESS_TOPIC", "platform.inventory.host-ingress")
+
+==========
+/etc/hosts
+----------
+127.0.0.1	localhost localhost.localdomain localhost4 localhost4.localdomain4 kafka-kafka-0.kafka-kafka-brokers.ephemeral-07.svc
+
+===============================================
+oc port-forward svc/host-inventory-service 8000
+oc port-forward svc/host-inventory-db 5432
+oc port-forward svc/kafka-kafka-bootstrap 9092
+
+oc logs -f host-inventory-inventory-mq-p1-67d8ffb89f-s48tz
+oc logs -f host-inventory-inventory-mq-pmin-6d7c88ff6b-hpszc
+oc logs -f kafka-kafka-0
+
+=================
+curl command used
+-----------------
+(insights-host-inventory) bash-3.2$ curl --location --request GET 'http://localhost:8000/api/inventory/v1/hosts' --header 'x-rh-identity: eyJpZGVudGl0eSI6IHsiYWNjb3VudF9udW1iZXIiOiAidGVzdCIsICJ0eXBlIjogIlVzZXIiLCAiYXV0aF90eXBlIjogImJhc2ljLWF1dGgiLCAidXNlciI6IHsiZW1haWwiOiAidHVzZXJAcmVkaGF0LmNvbSIsICJmaXJzdF9uYW1lIjogInRlc3QifX19' --header 'Content-Type: application/json' --data-raw '{"query":"{hosts(limit:10,offset:0){meta{count,total}data{id account display_name}}}","variables":{}}' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  3647  100  3546  100   101  39400   1122 --:--:-- --:--:-- --:--:-- 40522
+{
+  "total": 5,
+  "count": 5,
+  "page": 1,
+  "per_page": 50,
+  "results": [
+    {
+      "insights_id": "430cb7fa-da21-4268-b7d3-45ab2abb2769",
+      "rhel_machine_id": null,
+      "subscription_manager_id": null,
+      "satellite_id": null,
+      "bios_uuid": null,
+      "ip_addresses": null,
+      "fqdn": null,
+      "mac_addresses": null,
+      "external_id": null,
+      "provider_id": "abc3c629-d568-4c13-bbd5-7c588e226607",
+      "provider_type": "aws",
+      "id": "1a5b04a5-eeae-4934-aad3-0f62ca996489",
+      "account": "test",
+      "display_name": "7f9cd9.foo.redhat.com",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "me",
+      "stale_timestamp": "2021-06-20T02:37:05.881117+00:00",
+      "stale_warning_timestamp": "2021-06-27T02:37:05.881117+00:00",
+      "culled_timestamp": "2021-07-04T02:37:05.881117+00:00",
+      "created": "2021-06-19T02:37:06.466381+00:00",
+      "updated": "2021-06-19T02:37:06.466388+00:00"
+    },
+    {
+      "insights_id": "17aba149-e5b0-4518-b1fe-dda54dcf4b87",
+      "rhel_machine_id": null,
+      "subscription_manager_id": null,
+      "satellite_id": null,
+      "bios_uuid": null,
+      "ip_addresses": null,
+      "fqdn": null,
+      "mac_addresses": null,
+      "external_id": null,
+      "provider_id": "6f6f31e9-e49e-4871-84fc-108a48e16823",
+      "provider_type": "aws",
+      "id": "32362160-1cb1-438e-af20-55f01b72d151",
+      "account": "test",
+      "display_name": "64d335.foo.redhat.com",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "me",
+      "stale_timestamp": "2021-06-20T02:37:05.881023+00:00",
+      "stale_warning_timestamp": "2021-06-27T02:37:05.881023+00:00",
+      "culled_timestamp": "2021-07-04T02:37:05.881023+00:00",
+      "created": "2021-06-19T02:37:06.380631+00:00",
+      "updated": "2021-06-19T02:37:06.380635+00:00"
+    },
+    {
+      "insights_id": "0c5812e3-d670-4108-9b56-245020774c02",
+      "rhel_machine_id": null,
+      "subscription_manager_id": null,
+      "satellite_id": null,
+      "bios_uuid": null,
+      "ip_addresses": null,
+      "fqdn": null,
+      "mac_addresses": null,
+      "external_id": null,
+      "provider_id": "ee21b562-1560-4ff1-b37d-a499168f090e",
+      "provider_type": "aws",
+      "id": "1e9361f9-bf8a-4e94-bf8d-443c52bad9c9",
+      "account": "test",
+      "display_name": "5e6582.foo.redhat.com",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "me",
+      "stale_timestamp": "2021-06-20T02:37:05.880922+00:00",
+      "stale_warning_timestamp": "2021-06-27T02:37:05.880922+00:00",
+      "culled_timestamp": "2021-07-04T02:37:05.880922+00:00",
+      "created": "2021-06-19T02:37:06.360794+00:00",
+      "updated": "2021-06-19T02:37:06.360800+00:00"
+    },
+    {
+      "insights_id": "0ef35b9e-0188-4a1e-9c94-5a197d9e513f",
+      "rhel_machine_id": null,
+      "subscription_manager_id": null,
+      "satellite_id": null,
+      "bios_uuid": null,
+      "ip_addresses": null,
+      "fqdn": null,
+      "mac_addresses": null,
+      "external_id": null,
+      "provider_id": "77c80cdf-a129-4a00-bd77-c04de0341f80",
+      "provider_type": "aws",
+      "id": "06f0543f-5d8b-4dcc-ba6b-dc1c5754990b",
+      "account": "test",
+      "display_name": "cabbc1.foo.redhat.com",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "me",
+      "stale_timestamp": "2021-06-20T02:37:05.880814+00:00",
+      "stale_warning_timestamp": "2021-06-27T02:37:05.880814+00:00",
+      "culled_timestamp": "2021-07-04T02:37:05.880814+00:00",
+      "created": "2021-06-19T02:37:06.284541+00:00",
+      "updated": "2021-06-19T02:37:06.284547+00:00"
+    },
+    {
+      "insights_id": "d1683f05-50c3-4c55-8fe5-500d68f3ecb4",
+      "rhel_machine_id": null,
+      "subscription_manager_id": null,
+      "satellite_id": null,
+      "bios_uuid": null,
+      "ip_addresses": null,
+      "fqdn": null,
+      "mac_addresses": null,
+      "external_id": null,
+      "provider_id": "c8433501-cb02-4964-a626-64ae5a1c4c7f",
+      "provider_type": "aws",
+      "id": "0fe4d87c-7e83-4142-b557-bfc3c9af848f",
+      "account": "test",
+      "display_name": "730a16.foo.redhat.com",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "me",
+      "stale_timestamp": "2021-06-20T02:37:05.880268+00:00",
+      "stale_warning_timestamp": "2021-06-27T02:37:05.880268+00:00",
+      "culled_timestamp": "2021-07-04T02:37:05.880268+00:00",
+      "created": "2021-06-19T02:37:06.266914+00:00",
+      "updated": "2021-06-19T02:37:06.266918+00:00"
+    }
+  ]
+}
+(insights-host-inventory) bash-3.2$
+
+
+
+# ===================================================================================================
+ingress still not working.
+---------------------------
+aarif@MacBook-Pro~/Documents/howtos/insights/inventory/HBI-Setup $ curl -vvv -F "file=@test-archive.tar.gz;type=application/vnd.redhat.advisor.test+tgz" -u test:test https://localhost:18000/api/ingress/v1/upload
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 18000 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* error:1400410B:SSL routines:CONNECT_CR_SRVR_HELLO:wrong version number
+* Closing connection 0
+curl: (35) error:1400410B:SSL routines:CONNECT_CR_SRVR_HELLO:wrong version number
+aarif@MacBook-Pro~/Documents/howtos/insights/inventory/HBI-Setup $
+
+
+
+# ===================================================================================================
+bonfire namespace reserve -d 336
+export NAMESPACE=ephemeral-16
+echo $NAMESPACE
+oc project $NAMESPACE
+oc get po
+bonfire deploy host-inventory -n $NAMESPACE
+oc get po
+oc get deployments
