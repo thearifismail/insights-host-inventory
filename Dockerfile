@@ -1,12 +1,14 @@
-FROM registry.access.redhat.com/ubi8/python-38
+# FROM registry.access.redhat.com/ubi8/python-38
 
-USER root
+# USER root
 
-# use general package name instead of a specific one,
-# like "postgresql-10.15-1.module+el8.3.0+8944+1ca16b1f.x86_64",
-# so future security fixes are autamatically picked up.
-RUN dnf install -y postgresql
-RUN dnf upgrade -y --security
+# # use general package name instead of a specific one,
+# # like "postgresql-10.15-1.module+el8.3.0+8944+1ca16b1f.x86_64",
+# # so future security fixes are autamatically picked up.
+# RUN dnf install -y postgresql
+# RUN dnf upgrade -y --security
+
+FROM quay.io/thearifismail/ubi8-python38-psql
 
 USER 1001
 
