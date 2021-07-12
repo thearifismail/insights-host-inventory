@@ -337,6 +337,84 @@ objects:
           requests:
             cpu: 200m
             memory: 256Mi
+    # - name: sp-validator
+    #   schedule: '@hourly'
+    #   podSpec:
+    #     image: ${IMAGE}:${IMAGE_TAG}
+    #     restartPolicy: Never
+    #     command:
+    #       - /bin/sh
+    #       - -c
+    #       - python system_profile_validator.py
+    #     env:
+    #       - name: INVENTORY_LOG_LEVEL
+    #         value: ${LOG_LEVEL}
+    #       - name: GIT_TOKEN
+    #         valueFrom:
+    #           secretKeyRef:
+    #             key: token
+    #             name: dippy-bot
+    #       - name: INVENTORY_DB_SSL_MODE
+    #         value: ${INVENTORY_DB_SSL_MODE}
+    #       - name: INVENTORY_DB_SSL_CERT
+    #         value: ${INVENTORY_DB_SSL_CERT}
+    #       - name: KAFKA_BOOTSTRAP_SERVERS
+    #         value: ${KAFKA_BOOTSTRAP_HOST}:${KAFKA_BOOTSTRAP_PORT}
+    #       - name: PAYLOAD_TRACKER_KAFKA_TOPIC
+    #         value: platform.payload-status
+    #       - name: PAYLOAD_TRACKER_SERVICE_NAME
+    #         value: inventory-mq-service
+    #       - name: PAYLOAD_TRACKER_ENABLED
+    #         value: 'true'
+    #       - name: PROMETHEUS_PUSHGATEWAY
+    #         value: ${PROMETHEUS_PUSHGATEWAY}
+    #       - name: KAFKA_PRODUCER_ACKS
+    #         value: ${KAFKA_PRODUCER_ACKS}
+    #       - name: KAFKA_PRODUCER_RETRIES
+    #         value: ${KAFKA_PRODUCER_RETRIES}
+    #       - name: KAFKA_PRODUCER_RETRY_BACKOFF_MS
+    #         value: ${KAFKA_PRODUCER_RETRY_BACKOFF_MS}
+    #       - name: NAMESPACE
+    #         valueFrom:
+    #           fieldRef:
+    #             fieldPath: metadata.namespace
+    #       - name: KAFKA_CONSUMER_TOPIC
+    #         value: ${KAFKA_HOST_INGRESS_TOPIC}
+    #       - name: KAFKA_HOST_INGRESS_TOPIC
+    #         value: ${KAFKA_HOST_INGRESS_TOPIC}
+    #       - name: KAFKA_SYSTEM_PROFILE_TOPIC
+    #         value: ${KAFKA_SYSTEM_PROFILE_TOPIC}
+    #       - name: KAFKA_ADDITIONAL_VALIDATION_TOPIC
+    #         value: ${KAFKA_ADDITIONAL_VALIDATION_TOPIC}
+    #       - name: KAFKA_SP_VALIDATOR_MAX_MESSAGES
+    #         value: ${KAFKA_SP_VALIDATOR_MAX_MESSAGES}
+    #       - name: KAFKA_SECURITY_PROTOCOL
+    #         value: ${KAFKA_SECURITY_PROTOCOL}
+    #       - name: KAFKA_SASL_MECHANISM
+    #         value: ${KAFKA_SASL_MECHANISM}
+    #       - name: CLOWDER_ENABLED
+    #         value: "true"
+    #     resources:
+    #       limits:
+    #         cpu: ${CPU_LIMIT}
+    #         memory: ${MEMORY_LIMIT}
+    #       requests:
+    #         cpu: 200m
+    #         memory: 256Mi
+    #     volumeMounts:
+    #       - mountPath: /etc/inventory/cert
+    #         name: rds-client-ca
+    #         readOnly: true
+    #       - mountPath: /opt/certs/
+    #         name: kafka-cacert
+    #         readOnly: true
+    #     volumes:
+    #       - name: rds-client-ca
+    #         secret:
+    #           secretName: rds-client-ca
+    #       - name: kafka-cacert
+    #         secret:
+    #           secretName: kafka-ca
     - name: synchronizer
       podSpec:
         image: ${IMAGE}:${IMAGE_TAG}
@@ -425,16 +503,16 @@ parameters:
   value: 512Mi
 - description: Replica count for p1 consumer
   name: REPLICAS_P1
-  value: "5"
+  value: "1"
 - description: Replica count for pmin consumer
   name: REPLICAS_PMIN
-  value: "3"
+  value: "1"
 - description: Replica count for sp consumer
   name: REPLICAS_SP
-  value: "2"
+  value: "1"
 - description: Replica count for webservice
   name: REPLICAS_SVC
-  value: "10"
+  value: "1"
 - description: Image tag
   name: IMAGE_TAG
   required: true
