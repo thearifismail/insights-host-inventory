@@ -407,20 +407,6 @@ objects:
           requests:
             cpu: 200m
             memory: 256Mi
-        volumeMounts:
-          - mountPath: /etc/inventory/cert
-            name: rds-client-ca
-            readOnly: true
-          - mountPath: /opt/certs/
-            name: kafka-cacert
-            readOnly: true
-        volumes:
-          - name: rds-client-ca
-            secret:
-              secretName: rds-client-ca
-          - name: kafka-cacert
-            secret:
-              secretName: kafka-ca
     - name: synchronizer
       podSpec:
         image: ${IMAGE}:${IMAGE_TAG}
