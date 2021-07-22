@@ -2,7 +2,7 @@
 
 set -exv
 
-IMAGE="quay.io/thearifismail/host-inventory"
+IMAGE="quay.io/thearifismail/insights-inventory"
 IMAGE_TAG=$(git rev-parse --short=7 HEAD)
 SMOKE_TEST_TAG="latest"
 
