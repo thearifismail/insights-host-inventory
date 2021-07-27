@@ -1,4 +1,5 @@
 import flask
+from flask.wrappers import Response
 
 from api import api_operation
 from api import build_collection_response
@@ -77,7 +78,7 @@ def get_tags(
     filter=None,
 ):
     if not xjoin_enabled():
-        flask.abort(503)
+        flask.abort(Response("http_response: 503, xjoin not enabled or accessible"))
 
     limit, offset = pagination_params(page, per_page)
 

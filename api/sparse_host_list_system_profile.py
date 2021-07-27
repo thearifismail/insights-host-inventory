@@ -1,4 +1,5 @@
 import flask
+from flask.wrappers import Response
 from flask_api import status
 
 from app.instrumentation import log_get_sparse_system_profile_failed
@@ -50,7 +51,7 @@ def get_sparse_system_profile(host_id_list, page, per_page, order_by, order_how,
     try:
         order_by, order_how = hosts_order_by_params(order_by, order_how)
     except ValueError as e:
-        flask.abort(400, str(e))
+        flask.abort(Response(f"http_response: 400, {str(e)}"))
 
     host_ids = [{"id": {"eq": host_id}} for host_id in host_id_list]
     system_profile_fields = list(fields.get("system_profile").keys())

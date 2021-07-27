@@ -3,6 +3,7 @@ from enum import Enum
 import connexion
 import flask
 from flask import current_app
+from flask.wrappers import Response
 from flask_api import status
 from marshmallow import ValidationError
 
@@ -123,7 +124,7 @@ def get_host_list(
         )
     except ValueError as e:
         log_get_host_list_failed(logger)
-        flask.abort(400, str(e))
+        flask.abort(Response(f"http_response: 400, {str(e)}"))
 
     json_data = build_paginated_host_list_response(total, page, per_page, host_list, additional_fields)
     return flask_json_response(json_data)
@@ -188,7 +189,7 @@ def get_host_by_id(host_id_list, page=1, per_page=100, order_by=None, order_how=
 def get_host_system_profile_by_id(host_id_list, page=1, per_page=100, order_by=None, order_how=None, fields=None):
     if fields:
         if not get_bulk_query_source() == BulkQuerySource.xjoin:
-            flask.abort(503)
+            flask.abort(Response("http_response: 503, xjoin-search not accessible"))
 
         total, response_list = get_sparse_system_profile(host_id_list, page, per_page, order_by, order_how, fields)
     else:
@@ -310,7 +311,7 @@ def get_host_tag_count(host_id_list, page=1, per_page=100, order_by=None, order_
     try:
         order_by = params_to_order_by(order_by, order_how)
     except ValueError as e:
-        flask.abort(400, str(e))
+        flask.abort(Response(f"http_response: 400, {str(e)}"))
     else:
         query = query.order_by(*order_by)
     query = query.paginate(page, per_page, True)
@@ -348,7 +349,7 @@ def get_host_tags(host_id_list, page=1, per_page=100, order_by=None, order_how=N
     try:
         order_by = params_to_order_by(order_by, order_how)
     except ValueError as e:
-        flask.abort(400, str(e))
+        flask.abort(Response(f"http_response: 400, {str(e)}"))
     else:
         query = query.order_by(*order_by)
 
@@ -397,4 +398,4 @@ def host_checkin(body):
         _emit_patch_event(serialized_host, existing_host.id, existing_host.canonical_facts.get("insights_id"))
         return flask_json_response(serialized_host, 201)
     else:
-        flask.abort(404, "No hosts match the provided canonical facts.")
+        flask.abort(Response("http_response: 404, No hosts match the provided canonical facts."))

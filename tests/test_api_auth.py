@@ -93,7 +93,7 @@ def test_validate_non_admin_user_identity(flask_client):
     response = flask_client.post(
         f"{SYSTEM_PROFILE_URL}/validate_schema?repo_branch=master&days=1", headers={"x-rh-identity": payload}
     )
-    assert 403 == response.status_code  # User is not an HBI admin
+    assert "http_response 403: This endpoint is restricted to HBI Admins." == (response.data).decode("utf-8")
 
 
 def test_validate_non_user_admin_endpoint(flask_client):
@@ -104,7 +104,7 @@ def test_validate_non_user_admin_endpoint(flask_client):
     response = flask_client.post(
         f"{SYSTEM_PROFILE_URL}/validate_schema?repo_branch=master&days=1", headers={"x-rh-identity": payload}
     )
-    assert 403 == response.status_code  # Endpoint not available to Systems
+    assert "http_response 403: This endpoint is restricted to HBI Admins." == (response.data).decode("utf-8")
 
 
 def test_validate_valid_system_identity(flask_client):

@@ -1,4 +1,5 @@
 import flask
+from flask.wrappers import Response
 from kafka import KafkaConsumer
 
 from api import api_operation
@@ -96,7 +97,7 @@ def xjoin_enabled():
 @metrics.api_request_time.time()
 def get_sap_system(tags=None, page=None, per_page=None, staleness=None, registered_with=None, filter=None):
     if not xjoin_enabled():
-        flask.abort(503)
+        flask.abort(Response("http_response: 503, xjoin not enabled or accessible"))
 
     limit, offset = pagination_params(page, per_page)
 
@@ -147,7 +148,7 @@ def get_sap_system(tags=None, page=None, per_page=None, staleness=None, register
 @metrics.api_request_time.time()
 def get_sap_sids(search=None, tags=None, page=None, per_page=None, staleness=None, registered_with=None, filter=None):
     if not xjoin_enabled():
-        flask.abort(503)
+        flask.abort(Response("http_response: 503, xjoin not enabled or accessible"))
 
     limit, offset = pagination_params(page, per_page)
 
@@ -208,7 +209,7 @@ def validate_schema(repo_fork="RedHatInsights", repo_branch="master", days=1, ma
     config = Config(RuntimeEnvironment.SERVICE)
     identity = get_current_identity()
     if not hasattr(identity, "user") or identity.user.get("username") not in config.sp_authorized_users:
-        flask.abort(403, "This endpoint is restricted to HBI Admins.")
+        flask.abort(Response("http_response 403: This endpoint is restricted to HBI Admins."))
 
     consumer = KafkaConsumer(
         bootstrap_servers=config.bootstrap_servers,
@@ -229,4 +230,4 @@ def validate_schema(repo_fork="RedHatInsights", repo_branch="master", days=1, ma
         return flask_json_response(response)
     except (ValueError, AttributeError) as e:
         consumer.close()
-        flask.abort(400, str(e))
+        flask.abort(Response(f"http_response: 400, {str(e)}"))
