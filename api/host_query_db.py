@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import flask
+from flask.wrappers import Response
 from sqlalchemy import and_
 from sqlalchemy import or_
 
@@ -39,7 +40,7 @@ def get_host_list(
 ):
     if filter:
         logger.error("xjoin search not accessible")
-        flask.abort(503, "xjoin search not accessible")
+        flask.abort(Response("http_response: 503, xjoin not enabled or accessible"))
 
     if fqdn:
         query = _find_hosts_by_canonical_fact("fqdn", fqdn)
