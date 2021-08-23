@@ -137,6 +137,7 @@ USER_IDENTITY = {
 #     "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": ""},
 #     "internal": {"org_id": "3340851", "auth_time": 6300},
 # }
+# b'eyJhY2NvdW50X251bWJlciI6ICJ0ZXN0IiwgInR5cGUiOiAiU3lzdGVtIiwgImF1dGhfdHlwZSI6ICJjZXJ0LWF1dGgiLCAic3lzdGVtIjogeyJjbiI6ICIxYjM2YjIwZi03ZmEwLTQ0NTQtYTZkMi0wMDgyOTRlMDYzNzgiLCAiY2VydF90eXBlIjogIiJ9LCAiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIzMzQwODUxIiwgImF1dGhfdGltZSI6IDYzMDB9fQ=='
 
 # without_cert_type
 # SYSTEM_IDENTITY = {
