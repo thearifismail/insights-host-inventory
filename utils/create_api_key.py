@@ -16,13 +16,13 @@ import sys
 """
 VALID_AUTH_TYPES = ["basic", "cert", "classic"]
 
-SYSTEM_IDENTITY = {
-    "account_number": "test",
-    "type": "System",
-    "auth_type": "cert-auth",
-    "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
-    "internal": {"org_id": "3340851", "auth_time": 6300},
-}
+# SYSTEM_IDENTITY = {
+#     "account_number": "test",
+#     "type": "System",
+#     "auth_type": "cert-auth",
+#     "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
+#     "internal": {"org_id": "3340851", "auth_time": 6300},
+# }
 
 USER_IDENTITY = {
     "account_number": "test",
@@ -130,14 +130,16 @@ USER_IDENTITY = {
 # b'eyJhY2NvdW50X251bWJlciI6ICJ0ZXN0IiwgInR5cGUiOiAiU3lzdGVtIiwgImF1dGhfdHlwZSI6ICJjZXJ0LWF1dGgiLCAic3lzdGVtIjogeyJjbiI6ICIxYjM2YjIwZi03ZmEwLTQ0NTQtYTZkMi0wMDgyOTRlMDYzNzgiLCAiY2VydF90eXBlIjogImludmFsaWQifSwgImludGVybmFsIjogeyJvcmdfaWQiOiAiMzM0MDg1MSIsICJhdXRoX3RpbWUiOiA2MzAwfX0='
 
 # with_blank_cert_type
-# SYSTEM_IDENTITY = {
-#     "account_number": "test",
-#     "type": "System",
-#     "auth_type": "cert-auth",
-#     "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": ""},
-#     "internal": {"org_id": "3340851", "auth_time": 6300},
-# }
-# b'eyJhY2NvdW50X251bWJlciI6ICJ0ZXN0IiwgInR5cGUiOiAiU3lzdGVtIiwgImF1dGhfdHlwZSI6ICJjZXJ0LWF1dGgiLCAic3lzdGVtIjogeyJjbiI6ICIxYjM2YjIwZi03ZmEwLTQ0NTQtYTZkMi0wMDgyOTRlMDYzNzgiLCAiY2VydF90eXBlIjogIiJ9LCAiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIzMzQwODUxIiwgImF1dGhfdGltZSI6IDYzMDB9fQ=='
+SYSTEM_IDENTITY = {
+    "identity": {
+        "account_number": "test",
+        "type": "System",
+        "auth_type": "cert-auth",
+        "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": ""},
+        "internal": {"org_id": "3340851", "auth_time": 6300},
+    }
+}
+# b'eyJpZGVudGl0eSI6IHsiYWNjb3VudF9udW1iZXIiOiAidGVzdCIsICJ0eXBlIjogIlN5c3RlbSIsICJhdXRoX3R5cGUiOiAiY2VydC1hdXRoIiwgInN5c3RlbSI6IHsiY24iOiAiMWIzNmIyMGYtN2ZhMC00NDU0LWE2ZDItMDA4Mjk0ZTA2Mzc4IiwgImNlcnRfdHlwZSI6ICIifSwgImludGVybmFsIjogeyJvcmdfaWQiOiAiMzM0MDg1MSIsICJhdXRoX3RpbWUiOiA2MzAwfX19'
 
 # without_cert_type
 # SYSTEM_IDENTITY = {
