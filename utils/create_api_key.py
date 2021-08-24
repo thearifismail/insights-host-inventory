@@ -200,6 +200,7 @@ VALID_AUTH_TYPES = ["basic", "cert", "classic"]
 #         "internal": {"org_id": "3340851", "auth_time": 6300},
 #     }
 # }
+# b'eyJpZGVudGl0eSI6IHsiYWNjb3VudF9udW1iZXIiOiAidGVzdCIsICJ0eXBlIjogIlN5c3RlbSIsICJhdXRoX3R5cGUiOiAiY2VydC1hdXRoIiwgImludGVybmFsIjogeyJvcmdfaWQiOiAiMzM0MDg1MSIsICJhdXRoX3RpbWUiOiA2MzAwfX19'
 
 # with_invalid_auth_type
 # USER_IDENTITY = {
