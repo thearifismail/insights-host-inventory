@@ -9,7 +9,7 @@ from app.xjoin import check_pagination
 from app.xjoin import graphql_query
 from app.xjoin import pagination_params
 
-__all__ = ("get_host_list", "query_filters")
+__all__ = ("get_host_list", "get_host_ids_list", "query_filters")
 
 logger = get_logger(__name__)
 
@@ -47,6 +47,22 @@ QUERY = """query Query(
             stale_timestamp,
             reporter,
             system_profile_facts (filter: $fields),
+        }
+    }
+}"""
+HOST_IDS_QUERY = """query Query(
+    $filter: [HostFilter!],
+) {
+    hosts(
+        filter: {
+            AND: $filter,
+        }
+    ) {
+        meta {
+            total,
+        }
+        data {
+            id,
         }
     }
 }"""
@@ -113,6 +129,33 @@ def get_host_list(
     check_pagination(offset, total)
 
     return map(deserialize_host, response["data"]), total, additional_fields
+
+
+def get_host_ids_list(display_name, fqdn, hostname_or_id, insights_id, provider_id, provider_type, tags, filter):
+    # registered_with and staleness required only to build query_filters
+    registered_with = None
+    staleness = None
+    all_filters = query_filters(
+        fqdn,
+        display_name,
+        hostname_or_id,
+        insights_id,
+        provider_id,
+        provider_type,
+        tags,
+        staleness,
+        registered_with,
+        filter,
+    )
+
+    current_identity = get_current_identity()
+    if current_identity.identity_type == IdentityType.SYSTEM and current_identity.auth_type != AuthType.CLASSIC:
+        all_filters += owner_id_filter()
+
+    variables = {"filter": all_filters}
+    response = graphql_query(HOST_IDS_QUERY, variables, log_get_host_list_failed)["hosts"]
+
+    return response["data"], response["meta"]["total"]
 
 
 def _params_to_order(param_order_by=None, param_order_how=None):
