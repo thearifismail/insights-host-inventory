@@ -7,20 +7,29 @@ USER root
 # so future security fixes are autamatically picked up.
 RUN microdnf install -y python38
 RUN microdnf install -y postgresql
+RUN microdnf install -y which
 RUN microdnf -y upgrade
 
-RUN pip3 install --user --upgrade pip
-RUN pip3 install --user pipenv
 
-USER 1001
+RUN chown -R 1001:0 /usr/local/lib
 
-WORKDIR /opt/app-root/src
-COPY . .
+# RUN chmod a+r /usr/local/lib/python3.8
+# RUN chmod a+w /usr/local/lib/python3.8
+# USER 1001
 
-# RUN pip install --upgrade pip && \
-#     pip install pipenv && \
-#     pipenv install --system --dev
+# RUN pwd
 
-RUN pipenv install --system --dev
+# WORKDIR /opt/app-root/src
+# COPY . .
 
-CMD bash -c 'make upgrade_db && make run_inv_mq_service'
+# RUN pwd
+
+# RUN pip3 install --user --upgrade pip
+# RUN pip3 install --user pipenv
+# RUN pipenv install --system --dev
+
+# RUN pipenv install --system --dev
+
+# CMD bash -c 'make upgrade_db && make run_inv_mq_service'
+RUN echo "Done building image!!!"
+
