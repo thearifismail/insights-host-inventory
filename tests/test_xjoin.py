@@ -420,14 +420,29 @@ def test_query_variables_registered_with_insights(mocker, query_source_xjoin, gr
     )
 
 
-@pytest.mark.parametrize("reporter", ("cloud-connector", "puptoo", "rhsm-conduit", "yupana"))
+@pytest.mark.parametrize(
+    "reporters", (["cloud-connector"], ["puptoo"], ["yupana", "puptoo"], ["cloud-connector", "puptoo", "rhsm-conduit"])
+)
 def test_query_variables_registered_with_per_reporter(
-    mocker, query_source_xjoin, graphql_query_empty_response, api_get, reporter
+    mocker, query_source_xjoin, graphql_query_empty_response, api_get, reporters
 ):
-    url = build_hosts_url(query=f"?registered_with={reporter}")
+    # Add a registered_with param for each reporter passed in
+    url = build_hosts_url(query="?" + "&".join([f"registered_with={reporter}" for reporter in reporters]))
     response_status, response_data = api_get(url)
 
     assert response_status == 200
+
+    # Build the expected PRS filter
+    prs_array = []
+    for reporter in reporters:
+        prs_array.append(
+            {
+                "per_reporter_staleness": {
+                    "reporter": {"eq": reporter},
+                    "stale_timestamp": {"gt": mocker.ANY},
+                }
+            }
+        )
 
     graphql_query_empty_response.assert_called_once_with(
         HOST_QUERY,
@@ -438,62 +453,7 @@ def test_query_variables_registered_with_per_reporter(
             "offset": mocker.ANY,
             "filter": (
                 mocker.ANY,
-                {
-                    "OR": [
-                        {
-                            "per_reporter_staleness": {
-                                "reporter": {"eq": reporter},
-                                "stale_timestamp": {"gt": mocker.ANY},
-                            }
-                        }
-                    ]
-                },
-            ),
-            "fields": mocker.ANY,
-        },
-        mocker.ANY,
-    )
-
-
-def test_query_variables_registered_with_multiple_reporters(
-    mocker, query_source_xjoin, graphql_query_empty_response, api_get
-):
-    url = build_hosts_url(query="?registered_with=cloud-connector&registered_with=puptoo&registered_with=rhsm-conduit")
-    response_status, response_data = api_get(url)
-
-    assert response_status == 200
-
-    graphql_query_empty_response.assert_called_once_with(
-        HOST_QUERY,
-        {
-            "order_by": mocker.ANY,
-            "order_how": mocker.ANY,
-            "limit": mocker.ANY,
-            "offset": mocker.ANY,
-            "filter": (
-                mocker.ANY,
-                {
-                    "OR": [
-                        {
-                            "per_reporter_staleness": {
-                                "reporter": {"eq": "cloud-connector"},
-                                "stale_timestamp": {"gt": mocker.ANY},
-                            },
-                        },
-                        {
-                            "per_reporter_staleness": {
-                                "reporter": {"eq": "puptoo"},
-                                "stale_timestamp": {"gt": mocker.ANY},
-                            },
-                        },
-                        {
-                            "per_reporter_staleness": {
-                                "reporter": {"eq": "rhsm-conduit"},
-                                "stale_timestamp": {"gt": mocker.ANY},
-                            },
-                        },
-                    ],
-                },
+                {"OR": prs_array},
             ),
             "fields": mocker.ANY,
         },
