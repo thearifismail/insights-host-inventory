@@ -64,7 +64,10 @@ logger = get_logger(__name__)
 
 def _get_host_list_by_id_list(host_id_list):
     current_identity = get_current_identity()
-    query = Host.query.filter((Host.account == current_identity.account_number) & Host.id.in_(host_id_list))
+    if "org_id" in vars(current_identity):
+        query = Host.query.filter((Host.org_id == current_identity.org_id) & Host.id.in_(host_id_list))
+    else:
+        query = Host.query.filter((Host.account == current_identity.account_number) & Host.id.in_(host_id_list))
     return find_non_culled_hosts(update_query_for_owner_id(current_identity, query))
 
 
@@ -203,7 +206,10 @@ def delete_host_list(
 
 def _delete_filtered_hosts(host_id_list):
     current_identity = get_current_identity()
-    payload_tracker = get_payload_tracker(account=current_identity.account_number, request_id=threadctx.request_id)
+    if "org_id" in vars(current_identity):
+        payload_tracker = get_payload_tracker(org_id=current_identity.org_id, request_id=threadctx.request_id)
+    else:
+        payload_tracker = get_payload_tracker(account=current_identity.account_number, request_id=threadctx.request_id)
 
     with PayloadTrackerContext(
         payload_tracker, received_status_message="delete operation", current_operation="delete"

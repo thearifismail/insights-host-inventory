@@ -15,6 +15,7 @@ from app.auth.identity import create_mock_identity_with_account
 from app.auth.identity import Identity
 from app.auth.identity import IdentityType
 from app.culling import Timestamps
+from app.exceptions import AccountOrgIDClashException
 from app.exceptions import InventoryException
 from app.exceptions import ValidationException
 from app.instrumentation import log_add_host_attempt
@@ -66,6 +67,34 @@ def _formatted_uuid(uuid_string):
     return str(UUID(uuid_string))
 
 
+# TODO: _use_org_id function was created to produce 'bOrgId'.
+# keep this for now as it may be needed.
+def _use_org_id(host, metadata):
+    identity = _decode_id(metadata["b64_identity"])
+    if "org_id" in identity.keys() and "org_id" in host.keys():
+        if identity.get("org_id") == host.get("org_id"):
+            logger.info("using org_id")
+            return True
+    elif "account_number" in identity.keys() and "account" in host.keys():
+        if identity.get("account_number") == host.get("account"):
+            logger.info("using account_number")
+            return False
+    else:
+        raise AccountOrgIDClashException(
+            "Use org_id or account in both places, identity and host. "
+            + "Using org_id in identity and account in host or vice versa not allowed."
+        )
+
+
+# TODO: find a way a around this function
+def _adding_required_missing_fields(host_data):
+    if "org_id" in host_data.keys() and "account" not in host_data.keys():
+        host_data["account"] = host_data.get(host_data.get("account"), "")
+    elif "org_id" not in host_data.keys():
+        host_data["org_id"] = host_data.get(host_data.get("org_id"), "")
+    return host_data
+
+
 def _get_identity(host, metadata):
     # rhsm reporter does not provide identity.  Set identity type to system for access the host in future.
     if metadata and "b64_identity" in metadata:
@@ -73,7 +102,10 @@ def _get_identity(host, metadata):
     else:
         if host.get("reporter") == "rhsm-conduit" and host.get("subscription_manager_id"):
             identity = deepcopy(SYSTEM_IDENTITY)
-            identity["account_number"] = host.get("account")
+            if "org_id" in identity.keys():
+                identity["org_id"] = host.get("org_id")
+            else:
+                identity["account_number"] = host.get("account")
             identity["system"]["cn"] = _formatted_uuid(host.get("subscription_manager_id"))
         elif metadata:
             raise ValueError(
@@ -83,8 +115,9 @@ def _get_identity(host, metadata):
         else:
             raise ValidationException("platform_metadata is mandatory")
 
-    if host.get("account") != identity["account_number"]:
-        raise ValidationException("The account number in identity does not match the number in the host.")
+    # TODO: when org_id is fully enabled and bOrgId check removed, enable the org_id comparison
+    # if host.get("account") != identity["account_number"]:
+    #    raise ValidationException("The account number in identity does not match the number in the host.")
 
     identity = Identity(identity)
     return identity
@@ -193,7 +226,10 @@ def update_system_profile(host_data, platform_metadata):
             input_host = deserialize_host(host_data, schema=LimitedHostSchema)
             input_host.id = host_data.get("id")
             staleness_timestamps = Timestamps.from_config(inventory_config())
-            identity = create_mock_identity_with_account(input_host.account)
+            if input_host.org_id:
+                identity = create_mock_identity_with_account(input_host.account, input_host.org_id)
+            else:
+                identity = create_mock_identity_with_account(input_host.account)
             output_host, host_id, insights_id, update_result = host_repository.update_system_profile(
                 input_host, identity, staleness_timestamps, EGRESS_HOST_FIELDS
             )
@@ -227,7 +263,7 @@ def add_host(host_data, platform_metadata):
             # basic-auth does not need owner_id
             if identity.identity_type == IdentityType.SYSTEM:
                 host_data = _set_owner(host_data, identity)
-
+            host_data = _adding_required_missing_fields(deepcopy(host_data))
             input_host = deserialize_host(host_data)
             staleness_timestamps = Timestamps.from_config(inventory_config())
             log_add_host_attempt(logger, input_host)

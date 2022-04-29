@@ -45,10 +45,10 @@ class IdentityType(str, Enum):
 
 
 class Identity:
-    def __init__(self, obj=None, token=None):
+    def __init__(self, obj=None, token=None, bOrgId=False):
         """
         A "trusted" identity is trusted to be passing in
-        the correct account number(s).
+        the correct account number(s) / org_id(s).
         """
         if token:
             # Treat as a trusted identity
@@ -65,17 +65,21 @@ class Identity:
                 raise ValueError("Invalid credentials")
 
             threadctx.account_number = "<<TRUSTED IDENTITY>>"
+            threadctx.org_id = "<<TRUSTED IDENTITY>>"
 
         elif obj:
-            # Ensure account number availability
+            # Ensure account number/org_id availability
             self.is_trusted_system = False
-            self.account_number = obj.get("account_number")
+            if bOrgId and obj.get("org_id"):
+                self.org_id = obj.get("org_id")
+            elif obj.get("account_number"):
+                self.account_number = obj.get("account_number")
+            else:
+                raise ValueError("The account_number or org_id is mandatory.")
             self.auth_type = obj.get("auth_type")
             self.identity_type = obj.get("type")
 
-            if not self.account_number:
-                raise ValueError("The account_number is mandatory.")
-            elif not self.identity_type or self.identity_type not in IdentityType.__members__.values():
+            if not self.identity_type or self.identity_type not in IdentityType.__members__.values():
                 raise ValueError("Identity type invalid or missing in provided Identity")
             elif self.auth_type is None:
                 raise ValueError("Identity is missing auth_type field")
@@ -100,32 +104,42 @@ class Identity:
                 else:
                     self.system["cert_type"] = self.system["cert_type"].lower()
 
-            threadctx.account_number = obj["account_number"]
+            if bOrgId:
+                threadctx.org_id = obj["org_id"]
+            else:
+                threadctx.account_number = obj["account_number"]
 
         else:
-            raise ValueError("Neither the account_number or token has been set")
+            raise ValueError("Neither the account_number, org_id, or token has been set")
 
     def _asdict(self):
+        ident = {
+            "type": self.identity_type,
+            "auth_type": self.auth_type,
+        }
+
+        if hasattr(self, "org_id"):
+            ident["org_id"] = self.org_id
+        else:
+            ident["account_number"] = self.account_number
+
         if self.identity_type == IdentityType.USER:
-            return {
-                "account_number": self.account_number,
-                "type": self.identity_type,
-                "auth_type": self.auth_type,
-                "user": self.user.copy(),
-            }
+            ident["user"] = self.user.copy()
+            return ident
         if self.identity_type == IdentityType.SYSTEM:
-            return {
-                "account_number": self.account_number,
-                "type": self.identity_type,
-                "auth_type": self.auth_type,
-                "system": self.system.copy(),
-            }
+            ident["system"] = self.system.copy()
+            return ident
 
     def __eq__(self, other):
-        return self.account_number == other.account_number
+        if "org_id" in vars(other):
+            return self.org_id == other.org_id
+        else:
+            return self.account_number == other.account_number
 
 
 # Messages from the system_profile topic don't need to provide a real Identity,
 # So this helper function creates a basic User-type identity from the host data.
-def create_mock_identity_with_account(account):
-    return Identity({"account_number": account, "type": IdentityType.USER, "auth_type": AuthType.BASIC})
+def create_mock_identity_with_account(account, org_id):
+    return Identity(
+        {"account_number": account, "org_id": org_id, "type": IdentityType.USER, "auth_type": AuthType.BASIC}
+    )

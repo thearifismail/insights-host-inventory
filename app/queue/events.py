@@ -28,6 +28,7 @@ class SerializedHostSchema(Schema):
     display_name = fields.Str()
     ansible_host = fields.Str()
     account = fields.Str(required=True)
+    org_id = fields.Str(required=True)
     insights_id = fields.Str()
     subscription_manager_id = fields.Str()
     satellite_id = fields.Str()
@@ -65,6 +66,7 @@ class HostDeleteEvent(Schema):
     timestamp = fields.DateTime(format="iso8601")
     type = fields.Str()
     account = fields.Str()
+    org_id = fields.Str()
     insights_id = fields.Str()
     request_id = fields.Str()
     metadata = fields.Nested(HostEventMetadataSchema())
@@ -92,6 +94,7 @@ def host_create_update_event(event_type, host, platform_metadata=None):
     )
 
 
+# TODO: should org_id be used here. should org_id and account both be present
 def host_delete_event(event_type, host):
     return (
         HostDeleteEvent,

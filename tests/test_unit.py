@@ -787,6 +787,7 @@ class SerializationDeserializeHostCompoundTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some acct",
+            "org_id": "test_org_id",
             "tags": {
                 "some namespace": {"some key": ["some value", "another value"], "another key": ["value"]},
                 "another namespace": {"key": ["value"]},
@@ -825,6 +826,7 @@ class SerializationDeserializeHostCompoundTestCase(TestCase):
 
     def test_with_only_required_fields(self):
         account = "some acct"
+        org_id = "test_org_id"
         stale_timestamp = datetime.now(timezone.utc)
         reporter = "puptoo"
         canonical_facts = {"fqdn": "some fqdn"}
@@ -833,6 +835,7 @@ class SerializationDeserializeHostCompoundTestCase(TestCase):
             host = deserialize_host(
                 {
                     "account": account,
+                    "org_id": org_id,
                     "stale_timestamp": stale_timestamp.isoformat(),
                     "reporter": reporter,
                     **canonical_facts,
@@ -946,6 +949,7 @@ class SerializationDeserializeHostCompoundTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some acct",
+            "org_id": "test_org_id",
             "reporter": "puptoo",
         }
         stale_timestamp = datetime.now(timezone.utc)
@@ -987,6 +991,7 @@ class SerializationDeserializeHostCompoundTestCase(TestCase):
         host = deserialize_host(
             {
                 "account": "some acct",
+                "org_id": "test_org_id",
                 "stale_timestamp": datetime.now(timezone.utc).isoformat(),
                 "reporter": "puptoo",
                 "fqdn": "some fqdn",
@@ -1023,6 +1028,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some acct",
+            "org_id": "test_org_id",
             "insights_id": str(uuid4()),
             "subscription_manager_id": str(uuid4()),
             "satellite_id": str(uuid4()),
@@ -1061,6 +1067,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             host_input["display_name"],
             host_input["ansible_host"],
             host_input["account"],
+            host_input["org_id"],
             deserialize_facts.return_value,
             deserialize_tags.return_value,
             host_input["system_profile"],
@@ -1073,6 +1080,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some account",
+            "org_id": "test_org_id",
             "tags": {
                 "some namespace": {"some key": ["some value", "another value"], "another key": ["value"]},
                 "another namespace": {"key": ["value"]},
@@ -1099,6 +1107,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             host_input["display_name"],
             host_input["ansible_host"],
             host_input["account"],
+            host_input["org_id"],
             deserialize_facts.return_value,
             deserialize_tags.return_value,
             host_input["system_profile"],
@@ -1111,6 +1120,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some account",
+            "org_id": "test_org_id",
             "facts": {
                 "some namespace": {"some key": "some value"},
                 "another namespace": {"another key": "another value"},
@@ -1137,6 +1147,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             host_input["display_name"],
             host_input["ansible_host"],
             host_input["account"],
+            host_input["org_id"],
             deserialize_facts.return_value,
             deserialize_tags.return_value,
             host_input["system_profile"],
@@ -1148,6 +1159,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
         host_input = {
             "ansible_host": "some ansible host",
             "account": "some account",
+            "org_id": "test_org_id",
             "facts": {
                 "some namespace": {"some key": "some value"},
                 "another namespace": {"another key": "another value"},
@@ -1178,6 +1190,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             None,
             host_input["ansible_host"],
             host_input["account"],
+            host_input["org_id"],
             deserialize_facts.return_value,
             deserialize_tags.return_value,
             host_input["system_profile"],
@@ -1190,6 +1203,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             "display_name": "some display name",
             "ansible_host": "some ansible host",
             "account": "some account",
+            "org_id": "test_org_id",
             "tags": [
                 {"namespace": "NS1", "key": "key1", "value": "value1"},
                 {"namespace": "NS2", "key": "key2", "value": "value2"},
@@ -1214,6 +1228,7 @@ class SerializationDeserializeHostMockedTestCase(TestCase):
             host_input["display_name"],
             host_input["ansible_host"],
             host_input["account"],
+            host_input["org_id"],
             deserialize_facts.return_value,
             deserialize_tags.return_value,
             {},
@@ -1845,6 +1860,7 @@ class EventProducerTests(TestCase):
             "stale_timestamp": datetime.now(timezone.utc).isoformat(),
             "reporter": "test_reporter",
             "account": "test",
+            "org_id": "test_org_id",
             "fqdn": "fqdn",
         }
 
@@ -2038,6 +2054,7 @@ class ModelsSystemProfileTestCase(TestCase):
     def _payload(self, system_profile):
         return {
             "account": "0000001",
+            "org_id": "test_org_id",
             "system_profile": system_profile,
             "stale_timestamp": datetime.now(timezone.utc).isoformat(),
             "reporter": "test",

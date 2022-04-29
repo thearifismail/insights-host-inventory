@@ -76,7 +76,10 @@ def find_existing_host(identity, canonical_facts):
 
 
 def find_existing_host_by_id(identity, host_id):
-    query = Host.query.filter((Host.account == identity.account_number) & (Host.id == UUID(host_id)))
+    if "org_id" in vars(identity):
+        query = Host.query.filter((Host.org_id == identity.org_id) & (Host.id == UUID(host_id)))
+    else:
+        query = Host.query.filter((Host.account == identity.account_number) & (Host.id == UUID(host_id)))
     query = update_query_for_owner_id(identity, query)
     return find_non_culled_hosts(query).order_by(Host.modified_on.desc()).first()
 
@@ -114,11 +117,19 @@ def single_canonical_fact_host_query(identity, canonical_fact, value, restrict_t
 
 
 def multiple_canonical_facts_host_query(identity, canonical_facts, restrict_to_owner_id=True):
-    query = Host.query.filter(
-        (Host.account == identity.account_number)
-        & (contains_no_incorrect_facts_filter(canonical_facts))
-        & (matches_at_least_one_canonical_fact_filter(canonical_facts))
-    )
+    if "org_id" in vars(identity):
+        query = Host.query.filter(
+            (Host.account == identity.org_id)
+            & (contains_no_incorrect_facts_filter(canonical_facts))
+            & (matches_at_least_one_canonical_fact_filter(canonical_facts))
+        )
+    else:
+        query = Host.query.filter(
+            (Host.account == identity.account_number)
+            & (contains_no_incorrect_facts_filter(canonical_facts))
+            & (matches_at_least_one_canonical_fact_filter(canonical_facts))
+        )
+
     if restrict_to_owner_id:
         query = update_query_for_owner_id(identity, query)
     return find_non_culled_hosts(query)

@@ -119,7 +119,10 @@ def _order_how(column, order_how):
 
 def _find_all_hosts():
     identity = get_current_identity()
-    query = Host.query.filter(Host.account == identity.account_number)
+    if "org_id" in vars(identity):
+        query = Host.query.filter(Host.org_id == identity.org_id)
+    else:
+        query = Host.query.filter(Host.account == identity.account_number)
     return update_query_for_owner_id(identity, query)
 
 
@@ -158,13 +161,21 @@ def _find_hosts_by_hostname_or_id(hostname):
         # Do not filter using the id
         logger.debug("The hostname (%s) could not be converted into a UUID", hostname, exc_info=True)
 
-    return Host.query.filter(and_(*[Host.account == current_identity.account_number, or_(*filter_list)]))
+    if "org_id" in vars(current_identity):
+        return Host.query.filter(and_(*[Host.org_id == current_identity.org_id, or_(*filter_list)]))
+    else:
+        return Host.query.filter(and_(*[Host.account == current_identity.account_number, or_(*filter_list)]))
 
 
 def _find_hosts_by_display_name(display_name):
 
     current_identity = get_current_identity()
     logger.debug("find_hosts_by_display_name(%s)", display_name)
-    return Host.query.filter(
-        and_(Host.account == current_identity.account_number, Host.display_name.comparator.contains(display_name))
-    )
+    if "org_id" in vars(current_identity):
+        return Host.query.filter(
+            and_(Host.org_id == current_identity.org_id, Host.display_name.comparator.contains(display_name))
+        )
+    else:
+        return Host.query.filter(
+            and_(Host.account == current_identity.account_number, Host.display_name.comparator.contains(display_name))
+        )
