@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import random
 import uuid
 from datetime import datetime
 from datetime import timedelta
@@ -558,7 +559,9 @@ def build_host_chunk():
     org_id = os.environ.get("INVENTORY_HOST_ACCOUNT", IDENTITY["org_id"])
     fqdn = random_uuid()[:6] + ".foo.redhat.com"
     payload = {
+        "account": str(random.choice(range(10000000000))),  # generate 10 digit account number
         "bios_uuid": random_uuid(),
+        "insights_id": random_uuid(),
         "org_id": org_id,
         "display_name": fqdn,
         "tags": [
