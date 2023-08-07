@@ -1,3 +1,5 @@
+import os
+
 from confluent_kafka.error import ProduceError
 
 from app.culling import Timestamps
@@ -6,6 +8,7 @@ from app.models import Host
 from app.queue.events import build_event
 from app.queue.events import EventType
 from app.queue.events import message_headers
+from app.serialization import deserialize_host
 from app.serialization import serialize_host
 from lib.metrics import synchronize_host_count
 
@@ -14,13 +17,25 @@ logger = get_logger(__name__)
 __all__ = ("synchronize_hosts",)
 
 
-def synchronize_hosts(select_query, event_producer, chunk_size, config, interrupt=lambda: False):
-    query = select_query.order_by(Host.id)
-    host_list = query.limit(chunk_size).all()
+# def synchronize_hosts(select_query, event_producer, chunk_size, config, interrupt=lambda: False):
+def synchronize_hosts(session, event_producer, chunk_size, config, interrupt=lambda: False):
+    if os.environ.get("PARTIAL_HOST_SYNC") == "true":
+        target = os.environ.get("FIRST_CHAR")
+        # SQL = f"SELECT COUNT(*) FROM hosts WHERE LEFT(id::text, 1) = '{target}'"
+        SQL = f"SELECT * FROM hosts WHERE LEFT(id::text, 1) = '{target}'"
+        result = session.execute(SQL)
+        host_list = result.cursor.fetchall()
+    else:
+        select_query = session.query(Host)
+        query = select_query.order_by(Host.id)
+        host_list = query.limit(chunk_size).all()
+
     num_synchronized = 0
 
     while len(host_list) > 0 and not interrupt():
         for host in host_list:
+            myhost = deserialize_host(host)
+            print(myhost)
             # First, set host.groups to [] if it's null.
             if host.groups is None:
                 host.groups = []
