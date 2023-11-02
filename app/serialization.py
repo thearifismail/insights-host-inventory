@@ -175,7 +175,6 @@ def serialize_host(host, staleness_timestamps, for_mq=True, additional_fields=tu
 def _remove_culled_hosts(group):
     from app import inventory_config
 
-    # Remove the hosts gone stale during the last hour but not removed from the DB yet
     if len(group.hosts) > 0:
         for host in group.hosts:
             stale_timestamp = host.stale_timestamp
