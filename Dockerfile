@@ -46,4 +46,5 @@ RUN microdnf remove -y $( comm -13 packages-before-devel-install.txt packages-af
 
 USER 1001
 
-CMD bash -c 'make upgrade_db && make run_inv_mq_service'
+# run_container.sh needs arguments providing the command to run z
+ENTRYPOINT [ "run_container.sh" ]
