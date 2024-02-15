@@ -4,20 +4,22 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "~=1.1.0"
+flask = "*"
 jsonify = "==0.5"  # Not semver
-flask-restful = "~=0.3.7"
+flask-restful = "*"
+# werkzeug="==2.3" # the last version supporting non-core werkzeug functionality like url
+werkzeug="*"
 requests = "~=2.31.0"
-flask-limiter = "~=1.0.1"
-flask-script = "~=2.0.6"
-flask-api = "==2.0"  # Not semver
-flask-sqlalchemy = "~=2.5.1"
+flask-limiter = "*"
+# flask-script = "~=2.0.6"
+flask-api = "*"  # Not semver
+flask-sqlalchemy = "*"
 psycopg2 = "~=2.9.9"
-flask-migrate = "~=2.5.2"
-itsdangerous = "~=1.1.0"
+flask-migrate = "*"
+itsdangerous = "~=2.1.2"
 gunicorn = "~=21.2.0"
-connexion = {version = "~=2.7",extras = ["swagger-ui"]}
-markupsafe = "==2.0.1" # Using v2.1.0 breaks Jinja2
+connexion = {version = "~=3.0.5",extras = ["swagger-ui"]}
+markupsafe = "==2.1.5" # Using v2.1.0 breaks Jinja2
 openapi-schema-validator = "< 0.2"
 openapi-spec-validator = "< 0.4.0" # those are a pain
 pyyaml = "~=5.4"
