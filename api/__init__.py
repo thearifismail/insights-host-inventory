@@ -1,10 +1,10 @@
 import time
 from functools import reduce
 from functools import wraps
+from http import HTTPStatus
 
 import flask
 import ujson
-from flask_api import status
 
 from api.metrics import api_request_count
 from api.segmentio import segmentio_track
@@ -76,5 +76,5 @@ def custom_escape(expression):
     return reduce(lambda x, y: x + "\\" + y if y in ESCAPE_CHARS else x + y, expression, "")
 
 
-def json_error_response(title, detail, status=status.HTTP_400_BAD_REQUEST):
+def json_error_response(title, detail, status=HTTPStatus.BAD_REQUEST):
     return flask_json_response({"title": title, "detail": detail}, status)

@@ -1,9 +1,9 @@
 import functools
 
 import flask
-from connexion.decorators.response import ResponseValidator
-from connexion.decorators.validation import ParameterValidator
 from connexion.json_schema import Draft4ResponseValidator
+from connexion.validators.json import JSONResponseBodyValidator
+from connexion.validators.parameter import ParameterValidator
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
 
@@ -13,7 +13,7 @@ CustomDraft4ResponseValidator = extend(
 )
 
 
-class CustomResponseValidator(ResponseValidator):
+class CustomResponseValidator(JSONResponseBodyValidator):
     """
     Extends the connexion ResponseValidator with x-propertyNames
     See https://connexion.readthedocs.io/en/latest/request.html#custom-validators
