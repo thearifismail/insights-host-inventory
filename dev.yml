@@ -59,16 +59,16 @@ services:
         - INVENTORY_DB_HOST=db
         - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
         - PROMETHEUS_MULTIPROC_DIR=/tmp
+        - BYPASS_RBAC="true"
       depends_on:
-        # - kafka
+        kafka:
+          condition: service_healthy
         db:
           condition: service_healthy
       ports:
         - "127.0.0.1:8050:8000"
       networks:
         hbi-network
-      # volumes:
-      #   - ./.env:/.env
 networks:
     hbi-network:
       name: hbi-network
