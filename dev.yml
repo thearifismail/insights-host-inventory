@@ -50,10 +50,27 @@ services:
         hbi-network:
           aliases:
             - kafka
-    inventory:
+    init:
       image: quay.io/cloudservices/insights-inventory
       entrypoint: /bin/bash -c
-      command: ["sleep 10; FLASK_APP=./manage.py flask db upgrade;  gunicorn -c gunicorn.conf.py -b 0.0.0.0:8000 -t 60 run"]
+      command: ["sleep 10; FLASK_APP=./manage.py flask db upgrade"]
+      environment:
+        - INVENTORY_LOG_LEVEL=DEBUG
+        - INVENTORY_DB_HOST=db
+        - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+        - PROMETHEUS_MULTIPROC_DIR=/tmp
+        - BYPASS_RBAC="true"
+      depends_on:
+        kafka:
+          condition: service_healthy
+        db:
+          condition: service_healthy
+      networks:
+        hbi-network
+    api-server:
+      image: quay.io/cloudservices/insights-inventory
+      entrypoint: /bin/bash -c
+      command: ["sleep 10; gunicorn -c gunicorn.conf.py -b 0.0.0.0:8000 -t 60 run"]
       environment:
         - INVENTORY_LOG_LEVEL=DEBUG
         - INVENTORY_DB_HOST=db
