@@ -86,6 +86,23 @@ services:
         - "127.0.0.1:8050:8000"
       networks:
         hbi-network
+    # mq-server:
+    #   image: quay.io/cloudservices/insights-inventory
+    #   entrypoint:  [ "dumb-init", "./run_command.sh" ]
+    #   command: ["sleep 10; ./inv_mq_service.py"]
+    #   environment:
+    #     - INVENTORY_LOG_LEVEL=DEBUG
+    #     - INVENTORY_DB_HOST=db
+    #     - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    #     - PROMETHEUS_MULTIPROC_DIR=/tmp
+    #     - BYPASS_RBAC=true
+    #   depends_on:
+    #     kafka:
+    #       condition: service_healthy
+    #     db:
+    #       condition: service_healthy
+    #   networks:
+    #     hbi-network
 networks:
     hbi-network:
       name: hbi-network
