@@ -1,11 +1,14 @@
 import functools
 
 import flask
-from connexion.decorators.response import ResponseValidator
-from connexion.decorators.validation import ParameterValidator
 from connexion.json_schema import Draft4ResponseValidator
+from connexion.validators import AbstractResponseBodyValidator as ResponseValidator
+from connexion.validators import ParameterValidator
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
+
+# from connexion.decorators.response import ResponseValidator
+# from connexion.decorators.validation import ParameterValidator
 
 
 CustomDraft4ResponseValidator = extend(
