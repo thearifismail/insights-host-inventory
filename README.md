@@ -470,3 +470,6 @@ This section relies on successful deployment of host-inventory and xjoin-search 
 ## Running ad hoc jobs using a different image
 
 There may be a job (ClowdJobInvocation) which requires using a special image that is different from the one used by the parent application, i.e. host-inventory.  Clowder out-of-the-box does not allow it.  [Running a Special Job](docs/running_special_job.md) describes how to accomplish it.
+
+## How to Test Cache in Host Inventory
+Testing cache is not simple and steps are provided in [How to Test Cache](docs/how_to_test_cache.md).
