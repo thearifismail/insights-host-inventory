@@ -561,16 +561,18 @@ USE_RANDOMNESS = os.environ.get("USE_RANDOMENESS", True)
 
 def build_host_chunk():
     org_id = os.environ.get("INVENTORY_HOST_ACCOUNT", IDENTITY["org_id"])
-    fqdn = random_uuid()[:6] + ".foo.redhat.com"
+    # fqdn = random_uuid()[:6] + ".foo.redhat.com"
+    # fqdn = "arif.foo.redhat.com"
     system_profile = create_system_profile()
 
     if IS_EDGE:
         system_profile["host_type"] = "edge"
 
     payload = {
-        "insights_id": random_uuid(),
+        # "insights_id": random_uuid(),
+        "insights_id": "2811ef11-e3b5-4d52-b4bd-7cf7af6b350c",
         "org_id": org_id,
-        "display_name": fqdn,
+        "display_name": "third_mac",
         "tags": [
             {"namespace": "SPECIAL", "key": "key", "value": "val"},
             {"namespace": "NS3", "key": "key3", "value": "val3"},
@@ -580,27 +582,40 @@ def build_host_chunk():
         "system_profile": system_profile,
         "stale_timestamp": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
         "reporter": "puptoo",
+        "mac_addresses": [
+            "5A:3D:18:47:EB:44",
+            "02:42:B0:F1:FD:01",
+            "52:54:00:CD:65:84",
+            # "BE:FE:93:D1:A8:20",
+            # "02:46:6B:06:C0:F0",
+            # "D6:58:86:AA:AA:40",
+        ],
     }
 
     # randomize the use of canonical_facts and reporters
     if USE_RANDOMNESS:
-        add_bios = random.choice([True, False])
-        add_subsman = random.choice([True, False])
-        add_provider_id = random.choice([True, False])
+        # add_bios = random.choice([True, False])
+        add_bios = False
+        # add_subsman = random.choice([True, False])
+        add_subsman = True
+        # add_provider_id = random.choice([True, False])
+        add_provider_id = False
 
         if add_bios:
             payload["bios_uuid"] = random_uuid()
 
         if add_subsman:
-            payload["subscription_manager_id"] = random_uuid()
+            payload["subscription_manager_id"] = "aa905aa7-4324-4473-8732-28a08e42eec0"  # random_uuid()
 
         if add_provider_id:
             payload["provider_id"] = random_uuid()
             payload["provider_type"] = random.choice(["aws", "azure", "google", "ibm"])
 
-        payload["reporter"] = random.choice(
-            ["cloud-connector", "puptoo", "rhsm-conduit", "rhsm-system-profile-bridge", "yuptoo"]
-        )
+        # payload["reporter"] = random.choice(
+        #     ["cloud-connector", "puptoo", "rhsm-conduit", "rhsm-system-profile-bridge", "yuptoo"]
+        # )
+
+        payload["reporter"] = "rhsm-conduit"
 
     return payload
 
