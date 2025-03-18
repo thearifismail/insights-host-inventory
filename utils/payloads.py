@@ -7,14 +7,14 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 
-# complete system identity
-IDENTITY = {
-    "org_id": "test",
-    "type": "System",
-    "auth_type": "cert-auth",
-    "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
-    "internal": {"auth_time": 6300},
-}
+# # complete system identity
+# IDENTITY = {
+#    "org_id": "test",
+#    "type": "System",
+#    "auth_type": "cert-auth",
+#    "system": {"cn": "1b36b20f-7fa0-4454-a6d2-008294e06378", "cert_type": "system"},
+#    "internal": {"auth_time": 6300},
+# }
 
 # system identity: invalid or incomplete for testing
 # IDENTITY = {
@@ -26,12 +26,12 @@ IDENTITY = {
 # }
 
 # complete user identity
-# IDENTITY = {
-#     "org_id": "test",
-#     "type": "User",
-#     "auth_type": "basic-auth",
-#     "user": {"email": "jramos@redhat.com", "first_name": "test"},
-# }
+IDENTITY = {
+    "org_id": "test",
+    "type": "User",
+    "auth_type": "basic-auth",
+    "user": {"email": "jramos@redhat.com", "first_name": "test"},
+}
 
 # incomplete or invalid user identity for testing
 # IDENTITY = {
@@ -596,7 +596,7 @@ def build_host_chunk():
 
         if add_provider_id:
             payload["provider_id"] = random_uuid()
-            payload["provider_type"] = random.choice(["aws", "azure", "google", "ibm"])
+            payload["provider_type"] = random.choice(["aws", "azure", "gcp", "ibm"])
 
         payload["reporter"] = random.choice(
             ["cloud-connector", "puptoo", "rhsm-conduit", "rhsm-system-profile-bridge", "yuptoo"]
