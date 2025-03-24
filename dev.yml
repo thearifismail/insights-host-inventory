@@ -145,7 +145,7 @@ services:
 
   rbac-server:
       container_name: rbac_server
-      image: quay.io/cloudservices/rbac:50cbc6d
+      image: quay.io/cloudservices/rbac:140ec51
       working_dir: /rbac
       entrypoint:
         - ./scripts/entrypoint.sh
@@ -177,6 +177,8 @@ services:
         - PRINCIPAL_PROXY_SERVICE_SSL_VERIFY=${PRINCIPAL_PROXY_SERVICE_SSL_VERIFY-False}
         - RBAC_DESTRUCTIVE_API_ENABLED_UNTIL=${RBAC_DESTRUCTIVE_API_ENABLED_UNTIL}
         - RBAC_DESTRUCTIVE_SEEDING_ENABLED_UNTIL=${RBAC_DESTRUCTIVE_SEEDING_ENABLED_UNTIL}
+        - V2_APIS_ENABLED=true
+        - V2_BOOTSTRAP_TENANT=true
       privileged: true
       ports:
           - 9080:8080
@@ -197,7 +199,7 @@ services:
 
   rbac-worker:
       container_name: rbac_worker
-      image: quay.io/cloudservices/rbac:50cbc6d
+      image: quay.io/cloudservices/rbac:140ec51
       working_dir: /opt/rbac/rbac
       entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'worker', '--loglevel=INFO']
       privileged: true
@@ -212,7 +214,7 @@ services:
 
   rbac-scheduler:
       container_name: rbac_scheduler
-      image: quay.io/cloudservices/rbac:50cbc6d
+      image: quay.io/cloudservices/rbac:140ec51
       working_dir: /opt/rbac/rbac
       entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'beat', '--loglevel=INFO']
       privileged: true
