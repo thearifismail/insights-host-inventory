@@ -29,8 +29,6 @@ from app.instrumentation import log_patch_group_failed
 from app.instrumentation import log_patch_group_success
 from app.logging import get_logger
 from app.models import InputGroupSchema
-from lib.feature_flags import FLAG_INVENTORY_KESSEL_WORKSPACE_MIGRATION
-from lib.feature_flags import get_flag_value
 from lib.group_repository import create_group_from_payload
 from lib.group_repository import delete_group_list
 from lib.group_repository import get_group_by_id_from_db
@@ -90,11 +88,12 @@ def create_group(body, rbac_filter=None):
 
     try:
         # Create group with validated data
-        if get_flag_value(FLAG_INVENTORY_KESSEL_WORKSPACE_MIGRATION):
+        # if get_flag_value(FLAG_INVENTORY_KESSEL_WORKSPACE_MIGRATION):
+        if True:
             default_parent_id = get_rbac_default_workspace()
             group_name = validated_create_group_data.get("name")
 
-            workspace_id = post_rbac_workspace(group_name, default_parent_id, f"{group_name} group")
+            workspace_id = post_rbac_workspace(group_name, str(default_parent_id), f"{group_name} group")
             if not workspace_id and not inventory_config().bypass_rbac:
                 message = f"Error while creating workspace for {group_name}"
                 logger.exception(message)

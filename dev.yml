@@ -17,7 +17,7 @@ services:
       - ./.export-service/create_exportdb.sql:/docker-entrypoint-initdb.d/create_exportdb.sql
       # Create .pg_data dir in your home or another destination for saving the db data between runs.
       # It is being provided to test DB upgrades
-      - pg_hbi_data:/var/lib/postgresql/data
+      - hbi_rbac_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U insights" ]
       interval: 2s
@@ -244,9 +244,9 @@ services:
         condition: service_healthy
 
 volumes:
-  pg_hbi_data:
+  hbi_rbac_data:
 
 networks:
   default:
-    name: hbi-network
+    name: hbi-rbac-network
     external: true
