@@ -1,257 +1,143 @@
 version: '3.1'
 services:
-  db:
-    container_name: hbi-db
-    image: docker.io/library/postgres:16.4
-    restart: always
-    environment:
-        POSTGRES_PASSWORD: insights
-        POSTGRES_USER: insights
-        PGUSER: insights
-        POSTGRES_DB: insights
-    privileged: true
-    ports:
-        - "5432:5432"
-    volumes:
-      - ./.unleash/create_unleashdb.sql:/docker-entrypoint-initdb.d/create_unleashdb.sql
-      - ./.export-service/create_exportdb.sql:/docker-entrypoint-initdb.d/create_exportdb.sql
-      # Create .pg_data dir in your home or another destination for saving the db data between runs.
-      # It is being provided to test DB upgrades
-      - ~/.pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U insights" ]
-      interval: 2s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-
-  export-service:
-    container_name: export-service
-    image: quay.io/cloudservices/export-service
-    environment:
-      - PGSQL_PORT=5432
-      - PGSQL_HOSTNAME=db
-      - PGSQL_USER=insights
-      - PGSQL_PASSWORD=insights
-      - PGSQL_DATABASE=export_service
-      - DEBUG=true
-      - OPEN_API_FILE_PATH=/var/tmp/openapi.json
-      - OPEN_API_PRIVATE_PATH=/var/tmp/private.json
-      - KAFKA_BROKERS=kafka:29092
-      - PSKS=testing-a-psk
-      - AWS_ACCESS_KEY=minio
-      - AWS_SECRET_ACCESS_KEY=minioadmin
-      - FAFKA_ANNOUNCE_TOPIC=platform.export.requests
-      - PUBLIC_PORT=8001
-      - METRICS_PORT=9090
-      - MINIO_PORT=9099
-      - MINIO_HOST=minio
-      - PRIVATE_PORT=10010
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - './.export-service:/.export-service'
-    ports:
-      - 8001:8001
-      - 9090:9090
-      - 10010:10010
-    command: >
-      /bin/sh -c "export-service migrate_db upgrade;
-      export-service api_server;
-      "
-
-  zookeeper:
-    container_name: zookeeper
-    image: docker.io/confluentinc/cp-zookeeper
-    environment:
-      - ZOOKEEPER_CLIENT_PORT=32181
-      - ZOOKEEPER_SERVER_ID=1
-
-  kafka:
-    container_name: kafka
-    image: docker.io/confluentinc/cp-kafka
-    ports:
-      - 29092:29092
-      - 9092:9092
-    depends_on:
-      - zookeeper
-    environment:
-      - KAFKA_ADVERTISED_LISTENERS=DOCKER://${KAFKA_QUEUE_HOST-kafka}:${KAFKA_QUEUE_PORT-29092},LOCALHOST://localhost:${KAFKA_QUEUE_PORT-9092}
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=DOCKER:PLAINTEXT,LOCALHOST:PLAINTEXT
-      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
-      - KAFKA_BROKER_ID=1
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:32181
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
-
-  unleash:
-    container_name: unleash
-    image: quay.io/cloudservices/unleash-server:4.21.0
-    environment:
-      - INIT_ADMIN_API_TOKENS=${UNLEASH_TOKEN:?}
-      - CHECK_VERSION=false
-      - DATABASE_HOST=db
-      - DATABASE_NAME=unleash
-      - DATABASE_USERNAME=${DATABASE_USER-insights}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD-insights}
-      - DATABASE_SSL=false
-      - IMPORT_DROP_BEFORE_IMPORT=false
-      - IMPORT_FILE=/.unleash/flags.json
-      - IMPORT_DROP_BEFORE_IMPORT=true
-      - LOG_LEVEL=INFO
-    ports:
-      - 4242:4242
-    volumes:
-      - './.unleash:/.unleash'
-    depends_on:
-      db:
-        condition: service_healthy
-
-  prometheus-gateway:
-    container_name: prometheus_gateway
-    image: quay.io/prometheus/pushgateway
-    ports:
-      - 9091:9091
-
-  minio:
-    container_name: minio
-    image: docker.io/minio/minio
-    ports:
-      - 9099:9099
-      - 9991:9991
-    volumes:
-      - ./tmp/minio:/data:Z
-    environment:
-      - MINIO_ROOT_USER=${AWS_ACCESS_KEY-minio}
-      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY-minioadmin}
-    command: server --address 0.0.0.0:9099 --console-address 0.0.0.0:9991 /data
-
-  s3-createbucket:
-    container_name: s3-createbucket
-    image: docker.io/minio/mc
-    depends_on:
-      - minio
-    restart: on-failure
-    entrypoint: >
-      /bin/sh -c "
-      sleep 10;
-      /usr/bin/mc config host add myminio http://minio:9099 ${AWS_ACCESS_KEY-minio} ${AWS_SECRET_ACCESS_KEY-minioadmin};
-      /usr/bin/mc alias set minio http://minio:9099 ${AWS_ACCESS_KEY-minio} ${AWS_SECRET_ACCESS_KEY-minioadmin};
-      /usr/bin/mc mb --ignore-existing myminio/exports-bucket;
-      /usr/bin/mc policy set public myminio/exports-bucket;
-      exit 0;
-      "
-
-  rbac-server:
-      container_name: rbac_server
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
-      working_dir: /rbac
-      entrypoint:
-        - ./scripts/entrypoint.sh
+    db:
+      container_name: hbi-db
+      image: docker.io/library/postgres:16.4
+      restart: always
       environment:
-        - DATABASE_SERVICE_NAME=POSTGRES_SQL
-        - DATABASE_ENGINE=postgresql
-        - DATABASE_NAME=insights
-        - POSTGRES_SQL_SERVICE_HOST=db
-        - POSTGRES_SQL_SERVICE_PORT=5432
-        - DATABASE_HOST=db
-        - DATABASE_PORT=5432
-        - API_PATH_PREFIX=/api/rbac
-        - DATABASE_USER=insights
-        - DATABASE_PASSWORD=insights
-        - DJANGO_LOG_HANDLERS=console,ecs
-        - DJANGO_READ_DOT_ENV_FILE=True
-        - DEVELOPMENT=${DEVELOPMENT-False}
-        - DJANGO_DEBUG=${DJANGO_DEBUG-True}
-        - REDIS_HOST=${REDIS_HOST-rbac_redis}
-        - PRINCIPAL_PROXY_SERVICE_PROTOCOL=${PRINCIPAL_PROXY_SERVICE_PROTOCOL-https}
-        - PRINCIPAL_PROXY_SERVICE_PORT=${PRINCIPAL_PROXY_SERVICE_PORT-443}
-        - PRINCIPAL_PROXY_SERVICE_HOST=${PRINCIPAL_PROXY_SERVICE_HOST}
-        - PRINCIPAL_PROXY_USER_ENV=${PRINCIPAL_PROXY_USER_ENV-stage}
-        - PRINCIPAL_PROXY_CLIENT_ID=${PRINCIPAL_PROXY_CLIENT_ID-insights-rbac}
-        - PRINCIPAL_PROXY_API_TOKEN=${PRINCIPAL_PROXY_API_TOKEN}
-        - BYPASS_BOP_VERIFICATION=${BYPASS_BOP_VERIFICATION-True}
-        - PRINCIPAL_PROXY_SERVICE_PATH=${PRINCIPAL_PROXY_SERVICE_PATH}
-        - PRINCIPAL_PROXY_SERVICE_SOURCE_CERT=${PRINCIPAL_PROXY_SERVICE_SOURCE_CERT-False}
-        - PRINCIPAL_PROXY_SERVICE_SSL_VERIFY=${PRINCIPAL_PROXY_SERVICE_SSL_VERIFY-False}
-        - RBAC_DESTRUCTIVE_API_ENABLED_UNTIL=${RBAC_DESTRUCTIVE_API_ENABLED_UNTIL}
-        - RBAC_DESTRUCTIVE_SEEDING_ENABLED_UNTIL=${RBAC_DESTRUCTIVE_SEEDING_ENABLED_UNTIL}
-        - V2_APIS_ENABLED=true
-        - V2_BOOTSTRAP_TENANT=true
+          POSTGRES_PASSWORD: insights
+          POSTGRES_USER: insights
+          PGUSER: insights
+          POSTGRES_DB: insights
       privileged: true
       ports:
-          - 9080:8080
+          - "5432:5432"
       volumes:
-        - '.:/rbac/'
+        - ./.unleash/create_unleashdb.sql:/docker-entrypoint-initdb.d/create_unleashdb.sql
+        - ./.export-service/create_exportdb.sql:/docker-entrypoint-initdb.d/create_exportdb.sql
+        # Create .pg_data dir in your home or another destination for saving the db data between runs.
+        # It is being provided to test DB upgrades
+        - ~/.pg_data:/var/lib/postgresql/data
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -U insights" ]
+        interval: 2s
+        timeout: 5s
+        retries: 5
+
+    export-service:
+      container_name: export-service
+      image: quay.io/cloudservices/export-service
+      environment:
+        - PGSQL_PORT=5432
+        - PGSQL_HOSTNAME=db
+        - PGSQL_USER=insights
+        - PGSQL_PASSWORD=insights
+        - PGSQL_DATABASE=export_service
+        - DEBUG=true
+        - OPEN_API_FILE_PATH=/var/tmp/openapi.json
+        - OPEN_API_PRIVATE_PATH=/var/tmp/private.json
+        - KAFKA_BROKERS=kafka:29092
+        - PSKS=testing-a-psk
+        - AWS_ACCESS_KEY=minio
+        - AWS_SECRET_ACCESS_KEY=minioadmin
+        - FAFKA_ANNOUNCE_TOPIC=platform.export.requests
+        - PUBLIC_PORT=8001
+        - METRICS_PORT=9090
+        - MINIO_PORT=9099
+        - MINIO_HOST=minio
+        - PRIVATE_PORT=10010
       depends_on:
         db:
           condition: service_healthy
-        rbac-worker:
-          condition: service_healthy
-        rbac-scheduler:
-          condition: service_healthy
-      healthcheck:
-        test: curl -q http://localhost:8080/metrics
-        interval: 5s
-        timeout: 5s
-        retries: 10
+      volumes:
+        - './.export-service:/.export-service'
+      ports:
+        - 8001:8001
+        - 9090:9090
+        - 10010:10010
+      command: >
+        /bin/sh -c "export-service migrate_db upgrade;
+        export-service api_server;
+        "
 
-  rbac-worker:
-      container_name: rbac_worker
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
-      working_dir: /opt/rbac/rbac
-      entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'worker', '--loglevel=INFO']
-      privileged: true
+    zookeeper:
+      container_name: zookeeper
+      image: docker.io/confluentinc/cp-zookeeper
+      environment:
+        - ZOOKEEPER_CLIENT_PORT=32181
+        - ZOOKEEPER_SERVER_ID=1
+
+    kafka:
+      container_name: kafka
+      image: docker.io/confluentinc/cp-kafka
+      ports:
+        - 29092:29092
+        - 9092:9092
       depends_on:
-        redis:
-          condition: service_healthy
-      healthcheck:
-        test: [ "CMD-SHELL", "celery --broker=redis://redis:6379/0 -A rbac.celery status" ]
-        interval: 30s
-        timeout: 10s
-        retries: 3
+        - zookeeper
+      environment:
+        - KAFKA_ADVERTISED_LISTENERS=DOCKER://${KAFKA_QUEUE_HOST-kafka}:${KAFKA_QUEUE_PORT-29092},LOCALHOST://localhost:${KAFKA_QUEUE_PORT-9092}
+        - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=DOCKER:PLAINTEXT,LOCALHOST:PLAINTEXT
+        - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
+        - KAFKA_BROKER_ID=1
+        - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+        - KAFKA_ZOOKEEPER_CONNECT=zookeeper:32181
+        - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
 
-  rbac-scheduler:
-      container_name: rbac_scheduler
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
-      working_dir: /opt/rbac/rbac
-      entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'beat', '--loglevel=INFO']
-      privileged: true
+    unleash:
+      container_name: unleash
+      image: quay.io/cloudservices/unleash-server:4.21.0
+      environment:
+        - INIT_ADMIN_API_TOKENS=${UNLEASH_TOKEN:?}
+        - CHECK_VERSION=false
+        - DATABASE_HOST=db
+        - DATABASE_NAME=unleash
+        - DATABASE_USERNAME=${DATABASE_USER-insights}
+        - DATABASE_PASSWORD=${DATABASE_PASSWORD-insights}
+        - DATABASE_SSL=false
+        - IMPORT_DROP_BEFORE_IMPORT=false
+        - IMPORT_FILE=/.unleash/flags.json
+        - IMPORT_DROP_BEFORE_IMPORT=true
+        - LOG_LEVEL=INFO
+      ports:
+        - 4242:4242
+      volumes:
+        - './.unleash:/.unleash'
       depends_on:
-        redis:
+        db:
           condition: service_healthy
-      healthcheck:
-        test: [ "CMD-SHELL", "celery --broker=redis://redis:6379/0 -A rbac.celery status" ]
-        interval: 30s
-        timeout: 10s
-        retries: 3
 
-  redis:
-    container_name: rbac_redis
-    image: redis:5.0.4
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
-      interval: 1s
-      timeout: 3s
-      retries: 5
+    prometheus-gateway:
+      container_name: prometheus_gateway
+      image: quay.io/prometheus/pushgateway
+      ports:
+        - 9091:9091
 
-  wait_for_app:
-    container_name: wait_for_app
-    image: hello-world:latest
-    depends_on:
-      rbac-server:
-        condition: service_healthy
+    minio:
+      container_name: minio
+      image: docker.io/minio/minio
+      ports:
+        - 9099:9099
+        - 9991:9991
+      volumes:
+        - ./tmp/minio:/data:Z
+      environment:
+        - MINIO_ROOT_USER=${AWS_ACCESS_KEY-minio}
+        - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY-minioadmin}
+      command: server --address 0.0.0.0:9099 --console-address 0.0.0.0:9991 /data
 
-# volumes:
-#   hbi_rbac_data:
-
-networks:
-  default:
-    name: hbi-rbac-network
-    external: true
+    s3-createbucket:
+      container_name: s3-createbucket
+      image: docker.io/minio/mc
+      depends_on:
+        - minio
+      restart: on-failure
+      entrypoint: >
+        /bin/sh -c "
+        sleep 10;
+        /usr/bin/mc config host add myminio http://minio:9099 ${AWS_ACCESS_KEY-minio} ${AWS_SECRET_ACCESS_KEY-minioadmin};
+        /usr/bin/mc alias set minio http://minio:9099 ${AWS_ACCESS_KEY-minio} ${AWS_SECRET_ACCESS_KEY-minioadmin};
+        /usr/bin/mc mb --ignore-existing myminio/exports-bucket;
+        /usr/bin/mc policy set public myminio/exports-bucket;
+        exit 0;
+        "

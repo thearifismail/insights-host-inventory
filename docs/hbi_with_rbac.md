@@ -19,7 +19,7 @@
     BYPASS_UNLEASH=true
     BYPASS_XJOIN=true
 
-    # from rbac's .env file
+    # from rbac .env file
     API_PATH_PREFIX=/api/rbac
 
     DEVELOPMENT=True

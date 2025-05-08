@@ -145,8 +145,7 @@ services:
 
   rbac-server:
       container_name: rbac_server
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
+      image: quay.io/cloudservices/rbac:ca0fd00
       working_dir: /rbac
       entrypoint:
         - ./scripts/entrypoint.sh
@@ -200,8 +199,7 @@ services:
 
   rbac-worker:
       container_name: rbac_worker
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
+      image: quay.io/cloudservices/rbac:ca0fd00
       working_dir: /opt/rbac/rbac
       entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'worker', '--loglevel=INFO']
       privileged: true
@@ -216,8 +214,7 @@ services:
 
   rbac-scheduler:
       container_name: rbac_scheduler
-      # image: quay.io/cloudservices/rbac:140ec51
-      image: quay.io/cloudservices/rbac:864a1e0
+      image: quay.io/cloudservices/rbac:ca0fd00
       working_dir: /opt/rbac/rbac
       entrypoint: ['celery', '--broker=redis://redis:6379/0', '-A', 'rbac.celery', 'beat', '--loglevel=INFO']
       privileged: true
