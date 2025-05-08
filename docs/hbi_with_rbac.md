@@ -1,6 +1,6 @@
 # Run host-inventry with RBAC
 ## Start Host-Inventory and Insights RBAC Containers
-1. Copy sample.env to .env
+1. Copy doc/sample.env to .env
     ```bash
     PROMETHEUS_MULTIPROC_DIR=/tmp
     APP_NAME="inventory"
