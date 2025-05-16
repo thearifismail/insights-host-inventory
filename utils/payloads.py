@@ -7,24 +7,45 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 
-# kessel user identity known to rbac deployed by bonfire in Ephemeral cluster
+# # kessel user identity known to rbac deployed by bonfire in Ephemeral cluster
+# IDENTITY = {
+#     "account_number": "123",
+#     "auth_type": "jwt-auth",
+#     "internal": {"auth_time": 0, "cross_access": "false", "org_id": "321"},
+#     "org_id": "321",
+#     "type": "User",
+#     "user": {
+#         "email": "Jane.Doe@example.com",
+#         "first_name": "Jane",
+#         "is_active": "true",
+#         "is_internal": "true",
+#         "is_org_admin": "false",
+#         "last_name": "Doe",
+#         "locale": "en_US",
+#         "user_id": "1212",
+#         "username": "Jane.Doe@example.com",
+#     },
+# }
+
+# insights_inventory_qe
 IDENTITY = {
-    "account_number": "123",
-    "auth_type": "jwt-auth",
-    "internal": {"auth_time": 0, "cross_access": "false", "org_id": "321"},
-    "org_id": "321",
-    "type": "User",
-    "user": {
-        "email": "Jane.Doe@example.com",
-        "first_name": "Jane",
-        "is_active": "true",
-        "is_internal": "true",
-        "is_org_admin": "false",
-        "last_name": "Doe",
-        "locale": "en_US",
-        "user_id": "1212",
-        "username": "Jane.Doe@example.com",
-    },
+    "identity": {
+        "account_number": "0369233",
+        "org_id": "3340851",
+        "type": "User",
+        "auth_type": "basic-auth",
+        "user": {
+            "username": "insights_inventory_qe",
+            "email": "insights_inventory_qe@redhat.com",
+            "first_name": "Insights",
+            "last_name": "Inventory",
+            "is_active": "true",
+            "is_org_admin": "true",
+            "is_internal": "false",
+            "locale": "en_US",
+        },
+        "internal": {"org_id": "3340851", "auth_time": 6300},
+    }
 }
 
 # complete system identity
