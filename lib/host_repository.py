@@ -36,6 +36,9 @@ from app.models import db
 from app.serialization import serialize_staleness_to_dict
 from app.staleness_serialization import get_sys_default_staleness
 from lib import metrics
+from app.models import Outbox
+from app.db import session_guard
+from app.queue.event_producer import write_message_batch
 
 __all__ = (
     "AddHostResult",
@@ -292,12 +295,25 @@ def find_non_culled_hosts(query: Query, org_id: str) -> Query:
 @metrics.new_host_commit_processing_time.time()
 def create_new_host(input_host: Host) -> tuple[Host, AddHostResult]:
     logger.debug("Creating a new host")
-
+    
     input_host.save()
-
+    
+    # Add outbox entry BEFORE commit
+    outbox_entry = Outbox(
+        aggregate_type="hbi.hosts",
+        aggregate_id=input_host.id,
+        type="host.created",
+        payload={ # TODO: What else should we add to the payload?
+            "host_id": str(input_host.id),
+            "org_id": input_host.org_id,
+            "reporter": input_host.reporter
+        }
+    )
+    db.session.add(outbox_entry)
+    
     metrics.create_host_count.inc()
     logger.debug("Created host (uncommitted):%s", input_host)
-
+    
     return input_host, AddHostResult.created
 
 
@@ -307,6 +323,19 @@ def update_existing_host(
 ) -> tuple[Host, AddHostResult]:
     logger.debug("Updating an existing host")
     logger.debug(f"existing host = {existing_host}")
+
+    # Add outbox entry BEFORE commit
+    outbox_entry = Outbox(
+        aggregate_type="hbi.hosts",
+        aggregate_id=input_host.id,
+        type="host.created",
+        payload={ # TODO: What else should we add to the payload?
+            "host_id": str(input_host.id),
+            "org_id": input_host.org_id,
+            "reporter": input_host.reporter
+        }
+    )
+    db.session.add(outbox_entry)
 
     existing_host.update(input_host, update_system_profile)
 

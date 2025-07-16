@@ -73,6 +73,23 @@ class EventProducer:
                 self._kafka_producer.flush()
             else:
                 self._kafka_producer.poll()
+
+                
+                # Add outbox entry BEFORE commit
+                outbox_entry = Outbox(
+                    aggregate_type="hbi.hosts",
+                    aggregate_id=input_host.id,
+                    type="host.created",
+                    payload={ # TODO: What else should we add to the payload?
+                        "host_id": str(input_host.id),
+                        "org_id": input_host.org_id,
+                        "reporter": input_host.reporter
+                    }
+                )
+                db.session.add(outbox_entry)
+
+
+
         except KafkaException as error:
             message_not_produced(logger, error, topic, event=v, key=k, headers=h)
             raise error

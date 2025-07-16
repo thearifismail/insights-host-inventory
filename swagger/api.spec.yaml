@@ -1038,6 +1038,28 @@ components:
           - ibm
       description: Filter by provider_type
       required: false
+    outboxEventType:
+      in: query
+      name: outbox_event_type
+      schema:
+        type: string
+        enum:
+          - create
+          - update
+          - delete
+      description: type of event to tell outbox to process
+      required: yes
+    outboxHostPayload:
+      in: query
+      name: outbox_host_payload
+      schema:
+        type: string
+        enum:
+          - create
+          - update
+          - delete
+      description: type of event to tell outbox to process
+      required: yes
     updatedStart:
       in: query
       name: updated_start

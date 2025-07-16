@@ -83,6 +83,7 @@ def _produce_host_update_events(event_producer, serialized_groups, host_list, id
         )
         event = build_event(EventType.updated, serialized_host, platform_metadata=metadata)
         event_producer.write_event(event, serialized_host["id"], headers, wait=True)
+        
 
 
 def _invalidate_system_cache(host_list: list[Host], identity: Identity):
