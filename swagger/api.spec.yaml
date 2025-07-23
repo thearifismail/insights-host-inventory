@@ -2036,6 +2036,165 @@ components:
     SystemProfileInterSystemsRunningInstance:
       $ref: 'system_profile.spec.yaml#/$defs/InterSystemsRunningInstance'
 
+    OutboxOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the outbox entry
+          example: 22cd8e39-13bb-4d02-8316-84b850dc5136
+        aggregate_type:
+          type: string
+          maxLength: 50
+          description: Type of aggregate this outbox entry refers to
+          default: hbi.hosts
+          example: hbi.hosts
+        aggregate_id:
+          type: string
+          format: uuid
+          description: ID of the aggregate this outbox entry refers to
+          example: 22cd8e39-13bb-4d02-8316-84b850dc5136
+        event_type:
+          type: string
+          maxLength: 50
+          description: Type of event this outbox entry represents
+          example: created
+          enum:
+            - created
+            - updated
+            - delete
+        payload:
+          type: object
+          nullable: true
+          description: JSON payload containing event data
+          additionalProperties: true
+          example:
+            host_id: 22cd8e39-13bb-4d02-8316-84b850dc5136
+            display_name: example-host
+      required:
+        - id
+        - aggregate_type
+        - aggregate_id
+        - event_type
+
+    OutboxPayloadMetadata:
+      type: object
+      properties:
+        localResourceId:
+          type: string
+          format: uuid
+          description: Local resource ID (HBI's host_id)
+          example: dd1b73b9-3e33-4264-968c-e3ce55b9afec
+        apiHref:
+          type: string
+          maxLength: 2048
+          nullable: true
+          description: API href URL (ignore for now)
+          example: https://apiHref.com/
+        consoleHref:
+          type: string
+          maxLength: 2048
+          nullable: true
+          description: Console href URL (ignore for now)
+          example: https://www.console.com/
+        reporterVersion:
+          type: string
+          maxLength: 50
+          description: Reporter version (Kessel to provide one, starting with 1.0)
+          example: "1.0"
+      required:
+        - localResourceId
+        - reporterVersion
+
+    OutboxPayloadCommon:
+      type: object
+      properties:
+        workspace_id:
+          type: string
+          format: uuid
+          description: Workspace ID (Group_ID)
+          example: a64d17d0-aec3-410a-acd0-e0b85b22c076
+      required:
+        - workspace_id
+
+    OutboxPayloadReporter:
+      type: object
+      properties:
+        satellite_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Satellite ID
+          example: 2c4196f1-0371-4f4c-8913-e113cfaa6e67
+        subscription_manager_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Subscription Manager ID
+          example: af94f92b-0b65-4cac-b449-6b77e665a08f
+        insights_inventory_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Insights Inventory ID
+          example: 05707922-7b0a-4fe6-982d-6adbc7695b8f
+        ansible_host:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Ansible host name
+          example: host-1
+
+    OutboxPayloadRepresentations:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/OutboxPayloadMetadata'
+        common:
+          $ref: '#/components/schemas/OutboxPayloadCommon'
+        reporter:
+          $ref: '#/components/schemas/OutboxPayloadReporter'
+      required:
+        - metadata
+        - common
+        - reporter
+
+    OutboxPayloadData:
+      type: object
+      properties:
+        type:
+          type: string
+          maxLength: 50
+          description: Type of resource
+          example: host
+        reporterType:
+          type: string
+          maxLength: 50
+          description: Type of reporter
+          example: hbi
+        reporterInstanceId:
+          type: string
+          format: uuid
+          description: Reporter instance ID
+          example: 3088be62-1c60-4884-b133-9200542d0b3f
+        representations:
+          $ref: '#/components/schemas/OutboxPayloadRepresentations'
+      required:
+        - type
+        - reporterType
+        - reporterInstanceId
+        - representations
+
+    OutboxPayloadOut:
+      allOf:
+        - $ref: '#/components/schemas/OutboxOut'
+        - type: object
+          properties:
+            payload:
+              $ref: '#/components/schemas/OutboxPayloadData'
+          required:
+            - payload
 
     # include renames for pagination
     PaginationOut:

@@ -362,3 +362,84 @@ class StalenessSchema(MarshmallowSchema):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class OutboxSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    id = fields.UUID(required=True, allow_none=False)
+    aggregate_type = fields.Str(
+        # TODO clarify if this should be required or not
+        # required=True,
+        required=False,
+        allow_none=False,
+        validate=marshmallow_validate.Length(min=1, max=255),
+        load_default="hbi.hosts"
+    )
+    aggregate_id = fields.UUID(required=True, allow_none=False)
+    event_type = fields.Str(
+        required=True,
+        allow_none=False,
+        validate=marshmallow_validate.Length(min=1, max=255)
+    )
+    payload = fields.Dict(required=False, allow_none=True, load_default=dict)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class OutboxPayloadMetadataSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    localResourceId = fields.UUID(required=True, allow_none=False)
+    apiHref = fields.Str(required=False, allow_none=True, validate=marshmallow_validate.Length(max=2048))
+    consoleHref = fields.Str(required=False, allow_none=True, validate=marshmallow_validate.Length(max=2048))
+    reporterVersion = fields.Str(required=True, allow_none=False, validate=marshmallow_validate.Length(max=50))
+
+
+class OutboxPayloadCommonSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    workspace_id = fields.UUID(required=True, allow_none=False)
+
+
+class OutboxPayloadReporterSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    satellite_id = fields.UUID(required=False, allow_none=True)
+    subscription_manager_id = fields.UUID(required=False, allow_none=True)
+    insights_inventory_id = fields.UUID(required=False, allow_none=True)
+    ansible_host = fields.Str(required=False, allow_none=True, validate=marshmallow_validate.Length(max=255))
+
+
+class OutboxPayloadRepresentationsSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    metadata = fields.Nested(OutboxPayloadMetadataSchema, required=True)
+    common = fields.Nested(OutboxPayloadCommonSchema, required=True)
+    reporter = fields.Nested(OutboxPayloadReporterSchema, required=True)
+
+
+class OutboxPayloadDataSchema(MarshmallowSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    type = fields.Str(required=True, allow_none=False, validate=marshmallow_validate.Length(max=50))
+    reporterType = fields.Str(required=True, allow_none=False, validate=marshmallow_validate.Length(max=50))
+    reporterInstanceId = fields.UUID(required=True, allow_none=False)
+    representations = fields.Nested(OutboxPayloadRepresentationsSchema, required=True)
+
+
+class OutboxPayloadSchema(OutboxSchema):
+    class Meta:
+        unknown = EXCLUDE
+
+    payload = fields.Nested(OutboxPayloadDataSchema, required=True, allow_none=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
